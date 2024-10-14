@@ -29,8 +29,8 @@ from tvm.runtime import NDArray
 from tvm.runtime import ndarray as _nd
 
 from . import _ffi_api
-from . import ty as _ty
-from .base import RelayNode, astext, pretty_print
+# from . import ty as _ty
+# from .base import RelayNode, astext, pretty_print
 
 # alias relay expr as Expr.
 Expr = RelayExpr
@@ -61,34 +61,34 @@ class ExprWithOp(RelayExpr):
         """
         return _ffi_api.cast(self, dtype)
 
-    def __str__(self):
-        return pretty_print(self)
+    # def __str__(self):
+    #     return pretty_print(self)
 
-    def astext(self, show_meta_data=True, annotate=None):
-        """Get the text format of the expression.
+    # def astext(self, show_meta_data=True, annotate=None):
+    #     """Get the text format of the expression.
 
-        Parameters
-        ----------
-        show_meta_data : bool
-            Whether to include meta data section in the text
-            if there is meta data.
+    #     Parameters
+    #     ----------
+    #     show_meta_data : bool
+    #         Whether to include meta data section in the text
+    #         if there is meta data.
 
-        annotate: Optional[Object->str]
-            Optionally annotate function to provide additional
-            information in the comment block.
+    #     annotate: Optional[Object->str]
+    #         Optionally annotate function to provide additional
+    #         information in the comment block.
 
-        Returns
-        -------
-        text : str
-            The text format of the expression.
+    #     Returns
+    #     -------
+    #     text : str
+    #         The text format of the expression.
 
-        Notes
-        -----
-        The meta data section is necessary to fully parse the text format.
-        However, it can contain dumps that are big (e.g constant weights),
-        so it can be helpful to skip printing the meta data section.
-        """
-        return astext(self, show_meta_data, annotate)
+    #     Notes
+    #     -----
+    #     The meta data section is necessary to fully parse the text format.
+    #     However, it can contain dumps that are big (e.g constant weights),
+    #     so it can be helpful to skip printing the meta data section.
+    #     """
+    #     return astext(self, show_meta_data, annotate)
 
     def __neg__(self):
         return _op_make.negative(self)
@@ -721,8 +721,8 @@ class StorageInfo(Node):
     def __init__(self, sids, dev_types, sizes):
         self.__init_handle_by_constructor__(_ffi_api.StorageInfo, sids, dev_types, sizes)
 
-    def __str__(self):
-        return pretty_print(self)
+    # def __str__(self):
+    #     return pretty_print(self)
 
     @property
     def storage_ids(self):
@@ -750,5 +750,5 @@ class StaticMemoryPlan(Node):
     def __init__(self, expr_to_storage_info):
         self.__init_handle_by_constructor__(_ffi_api.StaticMemoryPlan, expr_to_storage_info)
 
-    def __str__(self):
-        return pretty_print(self)
+    # def __str__(self):
+    #     return pretty_print(self)

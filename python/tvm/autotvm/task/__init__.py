@@ -49,4 +49,4 @@ from .topi_integration import (
     TaskExtractEnv,
     get_workload,
 )
-from .relay_integration import extract_from_program, extract_from_multiple_program
+# from .relay_integration import extract_from_program, extract_from_multiple_program

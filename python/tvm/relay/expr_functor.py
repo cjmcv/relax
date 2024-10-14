@@ -18,7 +18,7 @@
 """The expression functor of Relay."""
 from tvm.ir import Op
 
-from .function import Function, FunctionWithFields
+# from .function import Function, FunctionWithFields
 from .expr import Call, Let, Var, GlobalVar
 from .expr import If, Tuple, TupleGetItem, Constant
 from .expr import RefCreate, RefRead, RefWrite
@@ -42,8 +42,8 @@ class ExprFunctor:
         if expr in self.memo_map:
             return self.memo_map[expr]
 
-        if isinstance(expr, Function):
-            res = self.visit_function(expr)
+        # if isinstance(expr, Function):
+        #     res = self.visit_function(expr)
         elif isinstance(expr, Call):
             res = self.visit_call(expr)
         elif isinstance(expr, Let):
@@ -201,12 +201,12 @@ class ExprMutator(ExprFunctor):
     and reconstructs the AST.
     """
 
-    def visit_function(self, fn):
-        new_params = [self.visit(x) for x in fn.params]
-        new_body = self.visit(fn.body)
-        if new_params == list(fn.params) and new_body == fn.body:
-            return fn
-        return FunctionWithFields(fn, list(new_params), new_body)
+    # def visit_function(self, fn):
+    #     new_params = [self.visit(x) for x in fn.params]
+    #     new_body = self.visit(fn.body)
+    #     if new_params == list(fn.params) and new_body == fn.body:
+    #         return fn
+    #     return FunctionWithFields(fn, list(new_params), new_body)
 
     def visit_let(self, let):
         new_var = self.visit(let.var)
