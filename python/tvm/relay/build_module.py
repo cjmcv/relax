@@ -139,7 +139,7 @@ class BuildModule(object):
             The parameters of the final graph.
         """
         # pylint: disable=import-outside-toplevel
-        from tvm.auto_scheduler import is_auto_scheduler_enabled
+        # from tvm.auto_scheduler import is_auto_scheduler_enabled
         from tvm.meta_schedule import is_meta_schedule_enabled
 
         # pylint: enable=import-outside-toplevel
@@ -153,7 +153,7 @@ class BuildModule(object):
         # Turn off AutoTVM config not found warnings if auto_scheduler is enabled.
         old_autotvm_silent = autotvm.GLOBAL_SCOPE.silent
         autotvm.GLOBAL_SCOPE.silent = (
-            is_auto_scheduler_enabled() or is_meta_schedule_enabled() or old_autotvm_silent
+            is_meta_schedule_enabled() or old_autotvm_silent
         )
 
         mod_name = mangle_module_name(mod_name)

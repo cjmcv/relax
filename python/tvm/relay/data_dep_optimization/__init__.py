@@ -17,6 +17,6 @@
 # pylint: disable=unused-argument, not-context-manager
 """Optimizations involves changing of paramters"""
 
-from . import bsr_dense
+# from . import bsr_dense
 from . import simplify_fc_transpose
-from . import bsr_conv2d
+# from . import bsr_conv2d

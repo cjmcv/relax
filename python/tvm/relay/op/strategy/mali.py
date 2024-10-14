@@ -19,7 +19,7 @@
 import re
 
 from tvm import topi
-from tvm.auto_scheduler import is_auto_scheduler_enabled
+# from tvm.auto_scheduler import is_auto_scheduler_enabled
 from tvm.meta_schedule import is_meta_schedule_enabled
 
 from .. import op as _op
@@ -73,7 +73,7 @@ def conv2d_strategy_mali(attrs, inputs, out_type, target):
                 raise RuntimeError(f"Unsupported weight layout {kernel_layout} for conv2d NCHW")
         elif layout == "NHWC":
             assert kernel_layout == "HWIO"
-            need_auto_scheduler_layout = is_auto_scheduler_enabled()
+            need_auto_scheduler_layout = Fasle # is_auto_scheduler_enabled()
             need_meta_schedule_layout = is_meta_schedule_enabled()
             if need_auto_scheduler_layout or need_meta_schedule_layout:
                 strategy.add_implementation(
@@ -142,13 +142,7 @@ def conv2d_strategy_mali(attrs, inputs, out_type, target):
             )
         elif layout == "NHWC":
             assert kernel_layout == "HWOI"
-            if is_auto_scheduler_enabled():
-                strategy.add_implementation(
-                    wrap_compute_conv2d(topi.nn.depthwise_conv2d_nhwc),
-                    naive_schedule,
-                    name="depthwise_conv2d_nhwc.mali",
-                )
-            elif is_meta_schedule_enabled():
+            if is_meta_schedule_enabled():
                 strategy.add_implementation(
                     wrap_compute_conv2d(topi.nn.depthwise_conv2d_nhwc),
                     naive_schedule,
@@ -187,7 +181,7 @@ def conv2d_winograd_without_weight_transform_strategy_mali(attrs, inputs, out_ty
             name="conv2d_nchw_winograd.mali",
         )
     elif layout == "NHWC":
-        need_auto_scheduler_layout = is_auto_scheduler_enabled()
+        need_auto_scheduler_layout = False # is_auto_scheduler_enabled()
         need_meta_schedule_layout = is_meta_schedule_enabled()
         if need_auto_scheduler_layout or need_meta_schedule_layout:
             strategy.add_implementation(
@@ -213,13 +207,7 @@ def conv2d_winograd_without_weight_transform_strategy_mali(attrs, inputs, out_ty
 def dense_strategy_mali(attrs, inputs, out_type, target):
     """dense mali strategy"""
     strategy = _op.OpStrategy()
-    if is_auto_scheduler_enabled():
-        strategy.add_implementation(
-            wrap_compute_dense(topi.nn.dense, need_auto_scheduler_layout=True),
-            naive_schedule,
-            name="dense.mali",
-        )
-    elif is_meta_schedule_enabled():
+    if is_meta_schedule_enabled():
         strategy.add_implementation(
             wrap_compute_dense(topi.nn.dense, need_meta_schedule_layout=True),
             naive_schedule,

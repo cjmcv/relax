@@ -25,7 +25,7 @@ from tvm import relay, topi, tir
 from tvm.tir.schedule.analysis import has_block
 from tvm.dlight.gpu.matmul import auto_inline_consumers
 
-from ....auto_scheduler import is_auto_scheduler_enabled
+# from ....auto_scheduler import is_auto_scheduler_enabled
 from ....meta_schedule import is_meta_schedule_enabled
 from ....topi.generic import conv2d as conv2d_generic
 from .. import op as _op

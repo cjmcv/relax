@@ -19,7 +19,7 @@
 import logging
 
 import tvm
-from tvm import auto_scheduler, te
+from tvm import te # auto_scheduler, 
 
 from ..utils import get_const_tuple
 
@@ -78,24 +78,24 @@ def batch_matmul(
         XB, XK, XI = get_const_tuple(tensor_a.shape)
     else:
         XB, XI, XK = get_const_tuple(tensor_a.shape)
-    if auto_scheduler_rewritten_layout:
-        # Infer shape for the rewritten layout
-        YB, YK, YJ = auto_scheduler.get_shape_from_rewritten_layout(
-            auto_scheduler_rewritten_layout, ["b", "k", "j"]
-        )
-        auto_scheduler.remove_index_check(tensor_b)
-    elif meta_schedule_original_shape:
-        auto_scheduler.rewrite_tensor_shape(tensor_b, meta_schedule_original_shape)
-        if transpose_b:
-            YB, YJ, YK = get_const_tuple(tensor_b.shape)
-        else:
-            YB, YK, YJ = get_const_tuple(tensor_b.shape)
+    # if auto_scheduler_rewritten_layout:
+    #     # Infer shape for the rewritten layout
+    #     YB, YK, YJ = auto_scheduler.get_shape_from_rewritten_layout(
+    #         auto_scheduler_rewritten_layout, ["b", "k", "j"]
+    #     )
+    #     auto_scheduler.remove_index_check(tensor_b)
+    # elif meta_schedule_original_shape:
+    #     auto_scheduler.rewrite_tensor_shape(tensor_b, meta_schedule_original_shape)
+    #     if transpose_b:
+    #         YB, YJ, YK = get_const_tuple(tensor_b.shape)
+    #     else:
+    #         YB, YK, YJ = get_const_tuple(tensor_b.shape)
+    # else:
+    assert len(tensor_b.shape) == 3, "tensor_b only support 3-dim"
+    if transpose_b:
+        YB, YJ, YK = get_const_tuple(tensor_b.shape)
     else:
-        assert len(tensor_b.shape) == 3, "tensor_b only support 3-dim"
-        if transpose_b:
-            YB, YJ, YK = get_const_tuple(tensor_b.shape)
-        else:
-            YB, YK, YJ = get_const_tuple(tensor_b.shape)
+        YB, YK, YJ = get_const_tuple(tensor_b.shape)
 
     assert XK == YK or isinstance(YK, tvm.tir.expr.Var), "shapes of x and y are inconsistent"
     k = te.reduce_axis((0, XK), name="k")
@@ -152,8 +152,8 @@ def batch_matmul(
         tag="batch_matmul",
         attrs={"layout_free_placeholders": [tensor_b]},
     )
-    if auto_scheduler_rewritten_layout:
-        output = auto_scheduler.rewrite_compute_body(output, auto_scheduler_rewritten_layout)
+    # if auto_scheduler_rewritten_layout:
+    #     output = auto_scheduler.rewrite_compute_body(output, auto_scheduler_rewritten_layout)
 
     return output
 

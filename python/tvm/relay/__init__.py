@@ -33,7 +33,7 @@ from .base import pretty_print, astext
 
 from . import transform
 from . import analysis
-from . import collage
+# from . import collage
 from .build_module import build, create_executor, optimize
 from .transform import build_config
 from . import debug
@@ -52,9 +52,9 @@ from .op.reduce import *
 from .op.tensor import *
 from .op.transform import *
 from .op.algorithm import *
-from . import frontend
+# from . import frontend
 from . import backend
-from . import quantize
+# from . import quantize
 from . import data_dep_optimization
 
 # Dialects

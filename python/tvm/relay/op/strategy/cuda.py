@@ -17,7 +17,7 @@
 """Definition of CUDA/GPU operator strategy."""
 # pylint: disable=invalid-name,unused-argument,wildcard-import,unused-wildcard-import
 from tvm import topi
-from tvm.auto_scheduler import is_auto_scheduler_enabled
+# from tvm.auto_scheduler import is_auto_scheduler_enabled
 from tvm.contrib import nvcc
 from tvm.contrib.thrust import can_use_thrust
 from tvm.meta_schedule import is_meta_schedule_enabled
@@ -261,7 +261,6 @@ def conv2d_strategy_cuda(attrs, inputs, out_type, target):
                     )
             if (
                 target.kind.name == "cuda"
-                and not is_auto_scheduler_enabled()
                 and not is_meta_schedule_enabled()
                 and nvcc.have_tensorcore(target=target)
                 and (
@@ -278,7 +277,7 @@ def conv2d_strategy_cuda(attrs, inputs, out_type, target):
                 )
 
             # register auto-scheduler implementations
-            if is_auto_scheduler_enabled() and judge_winograd_auto_scheduler:
+            if judge_winograd_auto_scheduler:
                 strategy.add_implementation(
                     wrap_compute_conv2d(topi.nn.conv2d_winograd_nhwc),
                     naive_schedule,  # this implementation should never be picked by autotvm
@@ -346,7 +345,7 @@ def conv2d_strategy_cuda(attrs, inputs, out_type, target):
                 wrap_topi_schedule(topi.cuda.schedule_conv2d_NCHWc_int8),
                 name="conv2d_NCHWc_int8.cuda",
             )
-        elif is_auto_scheduler_enabled() or is_meta_schedule_enabled():
+        elif is_meta_schedule_enabled():
             strategy.add_implementation(
                 wrap_compute_conv2d(
                     topi.nn.conv, need_data_layout=True, need_kernel_layout=True, has_groups=True
@@ -588,13 +587,13 @@ def conv2d_winograd_without_weight_transform_strategy_cuda(attrs, inputs, out_ty
                 name="conv2d_nhwc_winograd_direct_without_weight_transform.cuda",
             )
 
-        if is_auto_scheduler_enabled():
-            strategy.add_implementation(
-                wrap_compute_conv2d(topi.nn.conv2d_winograd_nhwc_without_weight_transform),
-                naive_schedule,  # this implementation should never be picked by autotvm
-                name="conv2d_nhwc_winograd_without_weight_transform",
-                plevel=15,
-            )
+        # if is_auto_scheduler_enabled():
+        #     strategy.add_implementation(
+        #         wrap_compute_conv2d(topi.nn.conv2d_winograd_nhwc_without_weight_transform),
+        #         naive_schedule,  # this implementation should never be picked by autotvm
+        #         name="conv2d_nhwc_winograd_without_weight_transform",
+        #         plevel=15,
+        #     )
         if is_meta_schedule_enabled():
             strategy.add_implementation(
                 wrap_compute_conv2d(topi.nn.conv2d_winograd_nhwc_without_weight_transform),
@@ -861,11 +860,7 @@ def matmul_strategy_cuda(attrs, inputs, out_type, target):
     """Matmul cuda strategy."""
     strategy = _op.OpStrategy()
 
-    if is_auto_scheduler_enabled():
-        strategy.add_implementation(
-            wrap_compute_matmul(topi.nn.matmul), naive_schedule, name="matmul.cuda"
-        )
-    elif is_meta_schedule_enabled():
+    if is_meta_schedule_enabled():
         strategy.add_implementation(
             wrap_compute_matmul(topi.nn.matmul), naive_schedule, name="matmul.cuda"
         )

@@ -17,7 +17,7 @@
 # pylint: disable=invalid-name,unused-argument
 """TVM operator fully connected compute."""
 import tvm
-from tvm import auto_scheduler, te
+from tvm import te # auto_scheduler, 
 
 from .. import tag, add
 
@@ -81,20 +81,21 @@ def matmul(
         in_dim, reduce_dim_a = tensor_a.shape[-2:]
     batch_dims_a = tensor_a.shape[:-2]
 
-    if auto_scheduler_rewritten_layout:
-        # Infer shape for the rewritten layout
-        assert len(tensor_b).shape == 2, "only support 2-dim matmul when using auto-scheduler"
-        out_dim, reduce_dim_b = auto_scheduler.get_shape_from_rewritten_layout(
-            auto_scheduler_rewritten_layout, ["j", "k"]
-        )
-        auto_scheduler.remove_index_check(tensor_b)
-    elif meta_schedule_original_shape:
-        auto_scheduler.rewrite_tensor_shape(tensor_b, meta_schedule_original_shape)
-        if transpose_b:
-            out_dim, reduce_dim_b = tensor_b.shape[-2:]
-        else:
-            reduce_dim_b, out_dim = tensor_b.shape[-2:]
-    elif transpose_b:
+    # if auto_scheduler_rewritten_layout:
+    #     # Infer shape for the rewritten layout
+    #     assert len(tensor_b).shape == 2, "only support 2-dim matmul when using auto-scheduler"
+    #     out_dim, reduce_dim_b = auto_scheduler.get_shape_from_rewritten_layout(
+    #         auto_scheduler_rewritten_layout, ["j", "k"]
+    #     )
+    #     auto_scheduler.remove_index_check(tensor_b)
+    # elif meta_schedule_original_shape:
+    #     auto_scheduler.rewrite_tensor_shape(tensor_b, meta_schedule_original_shape)
+    #     if transpose_b:
+    #         out_dim, reduce_dim_b = tensor_b.shape[-2:]
+    #     else:
+    #         reduce_dim_b, out_dim = tensor_b.shape[-2:]
+    # el
+    if transpose_b:
         out_dim, reduce_dim_b = tensor_b.shape[-2:]
     else:
         reduce_dim_b, out_dim = tensor_b.shape[-2:]
@@ -164,8 +165,8 @@ def matmul(
     if bias is not None:
         mat = add(mat, bias.astype(out_dtype))
 
-    if auto_scheduler_rewritten_layout:
-        mat = auto_scheduler.rewrite_compute_body(mat, auto_scheduler_rewritten_layout)
+    # if auto_scheduler_rewritten_layout:
+    #     mat = auto_scheduler.rewrite_compute_body(mat, auto_scheduler_rewritten_layout)
 
     return mat
 

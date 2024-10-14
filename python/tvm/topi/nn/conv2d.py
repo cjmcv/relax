@@ -25,7 +25,7 @@ from typing import Optional, Sequence, Union
 
 import numpy as np
 import tvm
-from tvm import auto_scheduler, te
+from tvm import te # auto_scheduler, 
 
 from ..utils import get_const_int, get_const_tuple, simplify, tag
 from .pad import pad
@@ -889,8 +889,8 @@ def conv(
     # transform from OIHW to kernel_layout
     kernel_permutation_from = np.argsort(kernel_permutation_to)
 
-    if meta_schedule_original_shape:
-        auto_scheduler.rewrite_tensor_shape(filt, meta_schedule_original_shape)
+    # if meta_schedule_original_shape:
+    #     auto_scheduler.rewrite_tensor_shape(filt, meta_schedule_original_shape)
     batch, in_channel, *dimensions = np.array(get_const_tuple(inp.shape))[
         data_permutation_to
     ].tolist()
@@ -898,14 +898,14 @@ def conv(
         kernel_permutation_to
     ].tolist()
 
-    # Autoscheduler may have messed with the input layout, so we extract the
-    # dimensions that it gives us
-    if auto_scheduler_rewritten_layout:
-        num_filter, _, *kernel_dimensions = auto_scheduler.get_shape_from_rewritten_layout(
-            auto_scheduler_rewritten_layout,
-            ["ff", "rc"] + [f"r{i}" for i in ["y", "x", "z"][: len(kernel_dimensions)]],
-        )
-        auto_scheduler.remove_index_check(filt)
+    # # Autoscheduler may have messed with the input layout, so we extract the
+    # # dimensions that it gives us
+    # if auto_scheduler_rewritten_layout:
+    #     num_filter, _, *kernel_dimensions = auto_scheduler.get_shape_from_rewritten_layout(
+    #         auto_scheduler_rewritten_layout,
+    #         ["ff", "rc"] + [f"r{i}" for i in ["y", "x", "z"][: len(kernel_dimensions)]],
+    #     )
+    #     auto_scheduler.remove_index_check(filt)
 
     assert in_channel % groups == 0, "input channels must divide group size"
     assert num_filter % groups == 0, "output channels must divide group size"
@@ -966,8 +966,8 @@ def conv(
     )
     # if we used autoscheduler's changed layout we need to rewrite the ordering
     # of the output dimensions
-    if auto_scheduler_rewritten_layout:
-        out = auto_scheduler.rewrite_compute_body(out, auto_scheduler_rewritten_layout)
+    # if auto_scheduler_rewritten_layout:
+    #     out = auto_scheduler.rewrite_compute_body(out, auto_scheduler_rewritten_layout)
     return out
 
 
@@ -1206,22 +1206,22 @@ def _conv2d_winograd_nhwc_impl(
         dilation_h = dilation_w = dilation
     else:
         dilation_h, dilation_w = dilation
-    if meta_schedule_original_shape:
-        auto_scheduler.rewrite_tensor_shape(weight, meta_schedule_original_shape)
+    # if meta_schedule_original_shape:
+    #     auto_scheduler.rewrite_tensor_shape(weight, meta_schedule_original_shape)
 
     assert (dilation_h, dilation_w) == (1, 1), "Does not support dilation"
     if not pre_computed:
         KH, KW, CI, CO = get_const_tuple(weight.shape)
     else:
-        if auto_scheduler_rewritten_layout:
-            H_CAT, W_CAT, CO, CI = get_const_tuple(
-                auto_scheduler.get_shape_from_rewritten_layout(
-                    auto_scheduler_rewritten_layout, ["eps", "nu", "co", "ci"]
-                )
-            )
-            auto_scheduler.remove_index_check(weight)
-        else:
-            H_CAT, W_CAT, CO, CI = get_const_tuple(weight.shape)
+        # if auto_scheduler_rewritten_layout:
+        #     H_CAT, W_CAT, CO, CI = get_const_tuple(
+        #         auto_scheduler.get_shape_from_rewritten_layout(
+        #             auto_scheduler_rewritten_layout, ["eps", "nu", "co", "ci"]
+        #         )
+        #     )
+        #     auto_scheduler.remove_index_check(weight)
+        # else:
+        H_CAT, W_CAT, CO, CI = get_const_tuple(weight.shape)
 
         KH, KW = H_CAT - tile_size + 1, W_CAT - tile_size + 1
 
@@ -1304,8 +1304,8 @@ def _conv2d_winograd_nhwc_impl(
         attrs=bgemm_attrs,
     )
 
-    if auto_scheduler_rewritten_layout:
-        bgemm = auto_scheduler.rewrite_compute_body(bgemm, auto_scheduler_rewritten_layout)
+    # if auto_scheduler_rewritten_layout:
+    #     bgemm = auto_scheduler.rewrite_compute_body(bgemm, auto_scheduler_rewritten_layout)
 
     # inverse transform
 
@@ -1357,8 +1357,8 @@ def _conv2d_winograd_nchw_impl(
         dilation_h = dilation_w = dilation
     else:
         dilation_h, dilation_w = dilation
-    if meta_schedule_original_shape:
-        auto_scheduler.rewrite_tensor_shape(weight, meta_schedule_original_shape)
+    # if meta_schedule_original_shape:
+    #     auto_scheduler.rewrite_tensor_shape(weight, meta_schedule_original_shape)
 
     assert (dilation_h, dilation_w) == (1, 1), "Does not support dilation"
     HSTR, WSTR = (strides, strides) if isinstance(strides, int) else strides
