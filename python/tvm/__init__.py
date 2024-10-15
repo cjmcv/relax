@@ -64,13 +64,13 @@ from . import te
 from .driver import build, lower
 
 # tvm.parser
-from . import parser
+# from . import parser
 
 # others
 from . import arith
 
 # support infra
-from . import support
+# from . import support
 
 # Contrib initializers
 from .contrib import rocm as _rocm, nvcc as _nvcc, sdaccel as _sdaccel
@@ -81,8 +81,8 @@ if not _RUNTIME_ONLY:
     # from . import relay
     from . import relax
 
-if not _RUNTIME_ONLY and support.libinfo().get("USE_MICRO", "OFF") == "ON":
-    from . import micro
+# if not _RUNTIME_ONLY and support.libinfo().get("USE_MICRO", "OFF") == "ON":
+#     from . import micro
 
 # NOTE: This file should be python2 compatible so we can
 # raise proper error message when user run the package using
