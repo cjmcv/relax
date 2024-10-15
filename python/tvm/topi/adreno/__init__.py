@@ -23,8 +23,8 @@ from .conv2d_nhwc import *
 from .group_conv2d_nchw import *
 from .depthwise_conv2d_nhwc import *
 from .pooling import *
-from .conv2d_alter_op import *
-from .conv2d_transpose_alter_op import *
+# from .conv2d_alter_op import *
+# from .conv2d_transpose_alter_op import *
 from .conv2d_nchw_winograd import *
 from .conv2d_nhwc_winograd import *
 from .injective import schedule_injective

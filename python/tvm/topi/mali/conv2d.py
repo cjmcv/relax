@@ -19,7 +19,7 @@
 import logging
 import tvm
 from tvm import te
-from tvm import relay
+# from tvm import relay
 from tvm import autotvm
 from tvm.autotvm.task.space import get_factors
 
@@ -503,112 +503,112 @@ def _schedule_winograd(cfg, s, op):
     s[Y].compute_at(s[output], tt)
 
 
-##### REGISTER ALTER OP LAYOUT #####
-@nn.conv2d_alter_layout.register(["mali"])
-def _alter_conv2d_layout(attrs, inputs, tinfos, out_type):
-    target = tvm.target.Target.current(allow_none=False)
-    dispatch_ctx = autotvm.task.DispatchContext.current
+# ##### REGISTER ALTER OP LAYOUT #####
+# @nn.conv2d_alter_layout.register(["mali"])
+# def _alter_conv2d_layout(attrs, inputs, tinfos, out_type):
+#     target = tvm.target.Target.current(allow_none=False)
+#     dispatch_ctx = autotvm.task.DispatchContext.current
 
-    new_attrs = {k: attrs[k] for k in attrs.keys()}
+#     new_attrs = {k: attrs[k] for k in attrs.keys()}
 
-    strides = attrs.get_int_tuple("strides")
-    padding = attrs.get_int_tuple("padding")
-    dilation = attrs.get_int_tuple("dilation")
-    data_layout = attrs["data_layout"]
-    kernel_layout = attrs["kernel_layout"]
-    data, kernel = tinfos
-    out_dtype = out_type.dtype
+#     strides = attrs.get_int_tuple("strides")
+#     padding = attrs.get_int_tuple("padding")
+#     dilation = attrs.get_int_tuple("dilation")
+#     data_layout = attrs["data_layout"]
+#     kernel_layout = attrs["kernel_layout"]
+#     data, kernel = tinfos
+#     out_dtype = out_type.dtype
 
-    impl, outs = relay.backend.te_compiler.select_implementation(
-        relay.op.get("nn.conv2d"), attrs, tinfos, out_type, target
-    )
-    workload = autotvm.task.get_workload(outs)
-    if workload is None:
-        # The best implementation is not an AutoTVM template.
-        # It may be from the auto-scheduler
-        if impl.name.find("winograd") != -1:
-            if dilation != (1, 1):
-                logger.warning("Does not support weight pre-transform for dilated convolution.")
-                return None
+#     impl, outs = relay.backend.te_compiler.select_implementation(
+#         relay.op.get("nn.conv2d"), attrs, tinfos, out_type, target
+#     )
+#     workload = autotvm.task.get_workload(outs)
+#     if workload is None:
+#         # The best implementation is not an AutoTVM template.
+#         # It may be from the auto-scheduler
+#         if impl.name.find("winograd") != -1:
+#             if dilation != (1, 1):
+#                 logger.warning("Does not support weight pre-transform for dilated convolution.")
+#                 return None
 
-            assert data_layout == "NHWC" and kernel_layout == "HWIO"
-            N, H, W, CI = get_const_tuple(data.shape)
-            KH, KW, _, CO = get_const_tuple(kernel.shape)
+#             assert data_layout == "NHWC" and kernel_layout == "HWIO"
+#             N, H, W, CI = get_const_tuple(data.shape)
+#             KH, KW, _, CO = get_const_tuple(kernel.shape)
 
-            # Pre-compute weight transformation in winograd
-            tile_size = _pick_tile_size(tinfos[0], tinfos[1], layout="NHWC")
+#             # Pre-compute weight transformation in winograd
+#             tile_size = _pick_tile_size(tinfos[0], tinfos[1], layout="NHWC")
 
-            # HWIO -> OIHW
-            kernel_transform = relay.transpose(inputs[1], axes=[3, 2, 0, 1])
-            # alpha, alpha, CO, CI
-            weight = relay.nn.contrib_conv2d_winograd_weight_transform(
-                kernel_transform, tile_size=tile_size
-            )
-            new_attrs["tile_size"] = tile_size
-            new_attrs["channels"] = CO
-            return relay.nn.contrib_conv2d_winograd_without_weight_transform(
-                inputs[0], weight, **new_attrs
-            )
+#             # HWIO -> OIHW
+#             kernel_transform = relay.transpose(inputs[1], axes=[3, 2, 0, 1])
+#             # alpha, alpha, CO, CI
+#             weight = relay.nn.contrib_conv2d_winograd_weight_transform(
+#                 kernel_transform, tile_size=tile_size
+#             )
+#             new_attrs["tile_size"] = tile_size
+#             new_attrs["channels"] = CO
+#             return relay.nn.contrib_conv2d_winograd_without_weight_transform(
+#                 inputs[0], weight, **new_attrs
+#             )
 
-        return None
-    cfg = dispatch_ctx.query(target, workload)
-    if cfg.is_fallback:  # if is fallback, clear query cache and return None
-        autotvm.task.clear_fallback_cache(target, workload)
-        return None
+#         return None
+#     cfg = dispatch_ctx.query(target, workload)
+#     if cfg.is_fallback:  # if is fallback, clear query cache and return None
+#         autotvm.task.clear_fallback_cache(target, workload)
+#         return None
 
-    topi_tmpl = workload[0]
-    idxd = tvm.tir.indexdiv
+#     topi_tmpl = workload[0]
+#     idxd = tvm.tir.indexdiv
 
-    if topi_tmpl == "conv2d_nchw_spatial_pack.mali":
-        assert data_layout == "NCHW" and kernel_layout == "OIHW"
-        N, CI, H, W = get_const_tuple(data.shape)
-        CO, _, KH, KW = get_const_tuple(kernel.shape)
-        VC = cfg["tile_co"].size[-1]
+#     if topi_tmpl == "conv2d_nchw_spatial_pack.mali":
+#         assert data_layout == "NCHW" and kernel_layout == "OIHW"
+#         N, CI, H, W = get_const_tuple(data.shape)
+#         CO, _, KH, KW = get_const_tuple(kernel.shape)
+#         VC = cfg["tile_co"].size[-1]
 
-        new_attrs["kernel_layout"] = f"OIHW{VC}o"
+#         new_attrs["kernel_layout"] = f"OIHW{VC}o"
 
-        new_data = data
-        new_kernel = te.placeholder((idxd(CO, VC), CI, KH, KW, VC), dtype=kernel.dtype)
-        new_workload = autotvm.task.args_to_workload(
-            [new_data, new_kernel, strides, padding, dilation, out_dtype],
-            "conv2d_nchw_spatial_pack.mali",
-        )
-        dispatch_ctx.update(target, new_workload, cfg)
+#         new_data = data
+#         new_kernel = te.placeholder((idxd(CO, VC), CI, KH, KW, VC), dtype=kernel.dtype)
+#         new_workload = autotvm.task.args_to_workload(
+#             [new_data, new_kernel, strides, padding, dilation, out_dtype],
+#             "conv2d_nchw_spatial_pack.mali",
+#         )
+#         dispatch_ctx.update(target, new_workload, cfg)
 
-        return relay.nn.conv2d(*inputs, **new_attrs)
-    elif topi_tmpl == "conv2d_nchw_winograd.mali":
-        assert data_layout == "NCHW" and kernel_layout == "OIHW"
-        N, CI, H, W = get_const_tuple(data.shape)
-        CO, _, KH, KW = get_const_tuple(kernel.shape)
-        tile_size = _pick_tile_size(data, kernel)
-        VC = cfg["tile_bna"].val
+#         return relay.nn.conv2d(*inputs, **new_attrs)
+#     elif topi_tmpl == "conv2d_nchw_winograd.mali":
+#         assert data_layout == "NCHW" and kernel_layout == "OIHW"
+#         N, CI, H, W = get_const_tuple(data.shape)
+#         CO, _, KH, KW = get_const_tuple(kernel.shape)
+#         tile_size = _pick_tile_size(data, kernel)
+#         VC = cfg["tile_bna"].val
 
-        weight_expr = inputs[1]
-        weight_expr = relay.nn.contrib_conv2d_winograd_weight_transform(
-            weight_expr, tile_size=tile_size
-        )
-        weight_expr = relay.reshape(
-            weight_expr, newshape=(KH + tile_size - 1, KW + tile_size - 1, idxd(CO, VC), VC, CI)
-        )
-        weight_expr = relay.transpose(weight_expr, axes=[0, 1, 2, 4, 3])
+#         weight_expr = inputs[1]
+#         weight_expr = relay.nn.contrib_conv2d_winograd_weight_transform(
+#             weight_expr, tile_size=tile_size
+#         )
+#         weight_expr = relay.reshape(
+#             weight_expr, newshape=(KH + tile_size - 1, KW + tile_size - 1, idxd(CO, VC), VC, CI)
+#         )
+#         weight_expr = relay.transpose(weight_expr, axes=[0, 1, 2, 4, 3])
 
-        new_attrs["tile_size"] = tile_size
+#         new_attrs["tile_size"] = tile_size
 
-        new_data = data
-        new_kernel = te.placeholder(
-            (KH + tile_size - 1, KW + tile_size - 1, idxd(CO, VC), CI, VC), kernel.dtype
-        )
-        new_workload = autotvm.task.args_to_workload(
-            [new_data, new_kernel, strides, padding, dilation, out_dtype],
-            "conv2d_nchw_winograd.mali",
-        )
-        dispatch_ctx.update(target, new_workload, cfg)
+#         new_data = data
+#         new_kernel = te.placeholder(
+#             (KH + tile_size - 1, KW + tile_size - 1, idxd(CO, VC), CI, VC), kernel.dtype
+#         )
+#         new_workload = autotvm.task.args_to_workload(
+#             [new_data, new_kernel, strides, padding, dilation, out_dtype],
+#             "conv2d_nchw_winograd.mali",
+#         )
+#         dispatch_ctx.update(target, new_workload, cfg)
 
-        return relay.nn.contrib_conv2d_winograd_without_weight_transform(
-            inputs[0], weight_expr, **new_attrs
-        )
-    else:
-        return None
+#         return relay.nn.contrib_conv2d_winograd_without_weight_transform(
+#             inputs[0], weight_expr, **new_attrs
+#         )
+#     else:
+#         return None
 
 
 @conv2d_winograd_nhwc.register(["mali"])

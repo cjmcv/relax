@@ -454,11 +454,11 @@ def visit_expr_stmt(self: Parser, node: doc.Expr) -> None:
         T.evaluate(res)
     elif isinstance(res, (int, bool)):
         T.evaluate(tvm.tir.const(res))
-    elif isinstance(res, (tvm.relay.Call, tvm.relax.Call)) and not res.args:
-        # Using GlobalVar.__call__ with no arguments is ambiguous, as
-        # each IR has a different function Call representation.  If
-        # this occurs, convert to the TIR representation.
-        T.evaluate(tvm.tir.call_tir(res.op))
+    # elif isinstance(res, (tvm.relay.Call, tvm.relax.Call)) and not res.args:
+    #     # Using GlobalVar.__call__ with no arguments is ambiguous, as
+    #     # each IR has a different function Call representation.  If
+    #     # this occurs, convert to the TIR representation.
+    #     T.evaluate(tvm.tir.call_tir(res.op))
     elif isinstance(res, str):
         # Ignore docstrings
         pass

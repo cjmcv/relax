@@ -31,7 +31,7 @@ from .dense import *
 from .matmul import *
 from .qnn import *
 
-from . import conv2d_alter_op
-from . import dense_alter_op
-from . import qnn_alter_op
-from . import qnn_legalize
+# from . import conv2d_alter_op
+# from . import dense_alter_op
+# from . import qnn_alter_op
+# from . import qnn_legalize

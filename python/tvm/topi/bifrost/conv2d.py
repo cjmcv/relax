@@ -20,7 +20,7 @@
 
 import tvm
 from tvm import te
-from tvm import relay
+# from tvm import relay
 from tvm import autotvm
 
 from .gemm import decl_winograd_gemm, schedule_gemm
@@ -471,82 +471,82 @@ def _schedule_winograd(cfg, s, op):
     tile_and_bind3d(s, output, k, h, w, 1, 2, 2)
 
 
-##### REGISTER ALTER OP LAYOUT #####
-@nn.conv2d_alter_layout.register("bifrost")
-def _alter_conv2d_layout(attrs, inputs, tinfos, out_type):
-    target = tvm.target.Target.current(allow_none=False)
-    dispatch_ctx = autotvm.task.DispatchContext.current
+# ##### REGISTER ALTER OP LAYOUT #####
+# @nn.conv2d_alter_layout.register("bifrost")
+# def _alter_conv2d_layout(attrs, inputs, tinfos, out_type):
+#     target = tvm.target.Target.current(allow_none=False)
+#     dispatch_ctx = autotvm.task.DispatchContext.current
 
-    _, outs = relay.backend.te_compiler.select_implementation(
-        relay.op.get("nn.conv2d"), attrs, tinfos, out_type, target
-    )
-    workload = autotvm.task.get_workload(outs)
-    if workload is None:
-        # The best implementation is not an AutoTVM template,
-        # we then assume it's not necessary to alter this op.
-        return None
-    cfg = dispatch_ctx.query(target, workload)
-    if cfg.is_fallback:  # if is fallback, clear query cache and return None
-        autotvm.task.clear_fallback_cache(target, workload)
-        return None
+#     _, outs = relay.backend.te_compiler.select_implementation(
+#         relay.op.get("nn.conv2d"), attrs, tinfos, out_type, target
+#     )
+#     workload = autotvm.task.get_workload(outs)
+#     if workload is None:
+#         # The best implementation is not an AutoTVM template,
+#         # we then assume it's not necessary to alter this op.
+#         return None
+#     cfg = dispatch_ctx.query(target, workload)
+#     if cfg.is_fallback:  # if is fallback, clear query cache and return None
+#         autotvm.task.clear_fallback_cache(target, workload)
+#         return None
 
-    topi_tmpl = workload[0]
-    new_attrs = {k: attrs[k] for k in attrs.keys()}
+#     topi_tmpl = workload[0]
+#     new_attrs = {k: attrs[k] for k in attrs.keys()}
 
-    strides = attrs.get_int_tuple("strides")
-    padding = attrs.get_int_tuple("padding")
-    dilation = attrs.get_int_tuple("dilation")
-    data_layout = attrs["data_layout"]
-    kernel_layout = attrs["kernel_layout"]
-    data, kernel = tinfos
-    out_dtype = out_type.dtype
+#     strides = attrs.get_int_tuple("strides")
+#     padding = attrs.get_int_tuple("padding")
+#     dilation = attrs.get_int_tuple("dilation")
+#     data_layout = attrs["data_layout"]
+#     kernel_layout = attrs["kernel_layout"]
+#     data, kernel = tinfos
+#     out_dtype = out_type.dtype
 
-    idxd = tvm.tir.indexdiv
+#     idxd = tvm.tir.indexdiv
 
-    if topi_tmpl == "conv2d_nchw_spatial_pack.bifrost":
-        assert data_layout == "NCHW" and kernel_layout == "OIHW"
-        N, CI, H, W = get_const_tuple(data.shape)
-        CO, _, KH, KW = get_const_tuple(kernel.shape)
-        VC = cfg["tile_co"].size[-1]
+#     if topi_tmpl == "conv2d_nchw_spatial_pack.bifrost":
+#         assert data_layout == "NCHW" and kernel_layout == "OIHW"
+#         N, CI, H, W = get_const_tuple(data.shape)
+#         CO, _, KH, KW = get_const_tuple(kernel.shape)
+#         VC = cfg["tile_co"].size[-1]
 
-        new_attrs["kernel_layout"] = f"OIHW{VC}o"
+#         new_attrs["kernel_layout"] = f"OIHW{VC}o"
 
-        new_data = data
-        new_kernel = te.placeholder((idxd(CO, VC), CI, KH, KW, VC), dtype=kernel.dtype)
-        new_workload = autotvm.task.args_to_workload(
-            [new_data, new_kernel, strides, padding, dilation, out_dtype],
-            "conv2d_nchw_spatial_pack.bifrost",
-        )
-        dispatch_ctx.update(target, new_workload, cfg)
+#         new_data = data
+#         new_kernel = te.placeholder((idxd(CO, VC), CI, KH, KW, VC), dtype=kernel.dtype)
+#         new_workload = autotvm.task.args_to_workload(
+#             [new_data, new_kernel, strides, padding, dilation, out_dtype],
+#             "conv2d_nchw_spatial_pack.bifrost",
+#         )
+#         dispatch_ctx.update(target, new_workload, cfg)
 
-        return relay.nn.conv2d(*inputs, **new_attrs)
+#         return relay.nn.conv2d(*inputs, **new_attrs)
 
-    if topi_tmpl == "conv2d_nchw_winograd.bifrost":
-        assert data_layout == "NCHW" and kernel_layout == "OIHW"
-        N, CI, H, W = get_const_tuple(data.shape)
-        CO, _, KH, KW = get_const_tuple(kernel.shape)
-        tile_size = 2
+#     if topi_tmpl == "conv2d_nchw_winograd.bifrost":
+#         assert data_layout == "NCHW" and kernel_layout == "OIHW"
+#         N, CI, H, W = get_const_tuple(data.shape)
+#         CO, _, KH, KW = get_const_tuple(kernel.shape)
+#         tile_size = 2
 
-        weight_expr = inputs[1]
-        weight_expr = relay.nn.contrib_conv2d_winograd_weight_transform(
-            weight_expr, tile_size=tile_size
-        )
-        weight_expr = relay.reshape(
-            weight_expr, newshape=(KH + tile_size - 1, KW + tile_size - 1, CO, CI)
-        )
+#         weight_expr = inputs[1]
+#         weight_expr = relay.nn.contrib_conv2d_winograd_weight_transform(
+#             weight_expr, tile_size=tile_size
+#         )
+#         weight_expr = relay.reshape(
+#             weight_expr, newshape=(KH + tile_size - 1, KW + tile_size - 1, CO, CI)
+#         )
 
-        new_attrs["tile_size"] = tile_size
+#         new_attrs["tile_size"] = tile_size
 
-        new_data = data
-        new_kernel = te.placeholder((KH + tile_size - 1, KW + tile_size - 1, CO, CI), kernel.dtype)
-        new_workload = autotvm.task.args_to_workload(
-            [new_data, new_kernel, strides, padding, dilation, out_dtype],
-            "conv2d_nchw_winograd.bifrost",
-        )
-        dispatch_ctx.update(target, new_workload, cfg)
+#         new_data = data
+#         new_kernel = te.placeholder((KH + tile_size - 1, KW + tile_size - 1, CO, CI), kernel.dtype)
+#         new_workload = autotvm.task.args_to_workload(
+#             [new_data, new_kernel, strides, padding, dilation, out_dtype],
+#             "conv2d_nchw_winograd.bifrost",
+#         )
+#         dispatch_ctx.update(target, new_workload, cfg)
 
-        return relay.nn.contrib_conv2d_winograd_without_weight_transform(
-            inputs[0], weight_expr, **new_attrs
-        )
+#         return relay.nn.contrib_conv2d_winograd_without_weight_transform(
+#             inputs[0], weight_expr, **new_attrs
+#         )
 
-    return None
+#     return None

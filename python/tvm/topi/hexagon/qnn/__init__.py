@@ -19,8 +19,8 @@
 
 from .adaptive_avg_pool1d import *
 from .avg_pool2d import *
-from .conv2d_alter_op import *
-from .dense_alter_op import *
+# from .conv2d_alter_op import *
+# from .dense_alter_op import *
 from .dequantize import dequantize_compute, dequantize_schedule
 from .global_avg_pool2d import *
 from .nn import *

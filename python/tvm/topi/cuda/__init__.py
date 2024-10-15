@@ -26,13 +26,13 @@ from .conv2d_winograd import *
 from .conv2d_nhwc_winograd import *
 from .depthwise_conv2d import *
 from .group_conv2d_nchw import *
-from . import conv2d_alter_op
+# from . import conv2d_alter_op
 from .conv2d_transpose import *
 from .conv3d_transpose_ncdhw import *
 from .deformable_conv2d import *
 from .conv3d import *
 from .conv3d_winograd import *
-from . import conv3d_alter_op
+# from . import conv3d_alter_op
 from .reduction import schedule_reduce
 from .softmax import *
 from .injective import schedule_injective, schedule_elemwise, schedule_broadcast
@@ -53,8 +53,8 @@ from .conv3d_ndhwc_tensorcore import *
 from .dense_tensorcore import *
 from .conv2d_hwnc_tensorcore import *
 from .correlation import *
-from .sparse import *
-from . import tensorcore_alter_op
+# from .sparse import *
+# from . import tensorcore_alter_op
 from .argwhere import *
 from .scan import *
 from .sparse_reshape import *
