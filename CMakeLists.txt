@@ -301,7 +301,7 @@ assign_source_group("Include" ${GROUP_INCLUDE})
 
 # Source file lists
 tvm_file_glob(GLOB_RECURSE COMPILER_SRCS
-    src/auto_scheduler/*.cc
+    # src/auto_scheduler/*.cc
     src/meta_schedule/*.cc
     src/node/*.cc
     src/ir/*.cc
@@ -340,7 +340,7 @@ tvm_file_glob(GLOB_RECURSE RELAY_OP_SRCS
     )
 tvm_file_glob(GLOB_RECURSE RELAY_PASS_SRCS
     src/relay/analysis/*.cc
-    src/relay/collage/*.cc
+    # src/relay/collage/*.cc
     src/relay/transforms/*.cc
     src/relay/quantize/*.cc
     )
@@ -564,7 +564,7 @@ else()
 endif()
 
 # Module rules
-include(cmake/modules/VTA.cmake)
+# include(cmake/modules/VTA.cmake)
 include(cmake/modules/StandaloneCrt.cmake)
 include(cmake/modules/CUDA.cmake)
 include(cmake/modules/Hexagon.cmake) # This must come before logging.cmake

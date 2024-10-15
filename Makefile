@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-
+# vta 
 .PHONY: all \
-        runtime vta cpptest crttest \
+        runtime cpptest crttest \
         lint pylint cpplint scalalint \
 	cppdoc docs \
 	web webclean \
@@ -39,7 +39,7 @@ TVM_BUILD_PATH := $(abspath $(TVM_BUILD_PATH))
 # packaged version.
 DMLC_CORE_PATH ?= $(ROOTDIR)/3rdparty/dmlc-core
 DLPACK_PATH ?= $(ROOTDIR)/3rdparty/dlpack
-VTA_HW_PATH ?= $(ROOTDIR)/3rdparty/vta-hw
+# VTA_HW_PATH ?= $(ROOTDIR)/3rdparty/vta-hw
 
 
 
@@ -47,7 +47,7 @@ VTA_HW_PATH ?= $(ROOTDIR)/3rdparty/vta-hw
 all: $(addsuffix /all,$(TVM_BUILD_PATH))
 
 runtime: $(addsuffix /runtime,$(TVM_BUILD_PATH))
-vta: $(addsuffix /vta,$(TVM_BUILD_PATH))
+# vta: $(addsuffix /vta,$(TVM_BUILD_PATH))
 cpptest: $(addsuffix /cpptest,$(TVM_BUILD_PATH))
 crttest: $(addsuffix /crttest,$(TVM_BUILD_PATH))
 
@@ -78,7 +78,7 @@ FORCE:
 # Since the pattern stem is already being used for the directory name,
 # cannot also have it refer to the command passed to cmake.
 # Therefore, explicitly listing out the delegated.
-CMAKE_TARGETS = all runtime vta cpptest crttest clean
+CMAKE_TARGETS = all runtime cpptest crttest clean # vta 
 
 define GEN_CMAKE_RULE
 %/$(CMAKE_TARGET): %/CMakeCache.txt FORCE
