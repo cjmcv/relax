@@ -27,7 +27,7 @@
 #include <tvm/relay/dataflow_matcher.h>
 #include <tvm/relay/expr.h>
 #include <tvm/relay/expr_functor.h>
-#include <tvm/relay/qnn/attrs.h>
+// #include <tvm/relay/qnn/attrs.h>
 #include <tvm/relay/transform.h>
 #include <tvm/topi/broadcast.h>
 
@@ -35,7 +35,7 @@
 #include <set>
 #include <unordered_map>
 
-#include "../qnn/utils.h"
+// #include "../qnn/utils.h"
 #include "pattern_utils.h"
 
 namespace tvm {
@@ -125,17 +125,17 @@ class FlattenAtrousConvSubgraphMutator {
                       conv2d_attrs->out_dtype);
       }
 
-      if (conv2d_node_->op == Op::Get("qnn.conv2d")) {
-        Expr input_zero_point = conv2d_node_->args[2];
-        Expr kernel_zero_point = conv2d_node_->args[3];
-        Expr input_scale = conv2d_node_->args[4];
-        Expr kernel_scale = conv2d_node_->args[5];
-        return qnn::MakeQnnConv2D(data, weight, input_zero_point, kernel_zero_point, input_scale,
-                                  kernel_scale, strides, padding, dilation, conv2d_attrs->groups,
-                                  conv2d_attrs->channels, conv2d_attrs->kernel_size,
-                                  conv2d_attrs->data_layout, conv2d_attrs->kernel_layout,
-                                  conv2d_attrs->out_layout, conv2d_attrs->out_dtype);
-      }
+      // if (conv2d_node_->op == Op::Get("qnn.conv2d")) {
+      //   Expr input_zero_point = conv2d_node_->args[2];
+      //   Expr kernel_zero_point = conv2d_node_->args[3];
+      //   Expr input_scale = conv2d_node_->args[4];
+      //   Expr kernel_scale = conv2d_node_->args[5];
+      //   return qnn::MakeQnnConv2D(data, weight, input_zero_point, kernel_zero_point, input_scale,
+      //                             kernel_scale, strides, padding, dilation, conv2d_attrs->groups,
+      //                             conv2d_attrs->channels, conv2d_attrs->kernel_size,
+      //                             conv2d_attrs->data_layout, conv2d_attrs->kernel_layout,
+      //                             conv2d_attrs->out_layout, conv2d_attrs->out_dtype);
+      // }
 
       DLOG(INFO) << "Ran into an unhandled convolution, skipping " << expr << std::endl;
       return expr;
@@ -168,7 +168,7 @@ class FlattenAtrousConvRewriter : public MixedModeMutator {
   size_t op_iter_ = 0;
   const std::array<ExprSet, 3> ops_ = {
       ExprSet{Op::Get("nn.space_to_batch_nd")},
-      ExprSet{Op::Get("nn.conv2d"), Op::Get("qnn.conv2d")},
+      // ExprSet{Op::Get("nn.conv2d"), Op::Get("qnn.conv2d")},
       ExprSet{Op::Get("nn.batch_to_space_nd")},
   };
 };

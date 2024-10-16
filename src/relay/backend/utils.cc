@@ -26,7 +26,7 @@
 #include "utils.h"
 
 #include <tvm/relay/parser.h>
-#include <tvm/relay/qnn/transform.h>
+// #include <tvm/relay/qnn/transform.h>
 #include <tvm/runtime/ndarray.h>
 #include <tvm/tir/stmt_functor.h>
 
@@ -230,7 +230,7 @@ Array<Pass> GetPassPrefix(bool is_homogeneous, bool is_vm) {
   pass_seqs.push_back(transform::RemoveUnusedFunctions(entry_functions));
   pass_seqs.push_back(transform::ToBasicBlockNormalForm());
   // Run all dialect legalization passes.
-  pass_seqs.push_back(relay::qnn::transform::Legalize());
+  // pass_seqs.push_back(relay::qnn::transform::Legalize());
 
   // Legalize pass is restricted to homogeneous execution for now.
   if (is_homogeneous) {

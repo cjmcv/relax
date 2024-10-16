@@ -27,7 +27,7 @@
 #include <tvm/relay/analysis.h>
 #include <tvm/relay/executor.h>
 #include <tvm/relay/expr.h>
-#include <tvm/relay/qnn/transform.h>
+// #include <tvm/relay/qnn/transform.h>
 #include <tvm/relay/runtime.h>
 #include <tvm/relay/transform.h>
 #include <tvm/runtime/device_api.h>

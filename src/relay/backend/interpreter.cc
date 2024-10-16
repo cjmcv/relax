@@ -31,7 +31,7 @@
 #include <tvm/relay/feature.h>
 #include <tvm/relay/interpreter.h>
 #include <tvm/relay/pattern_functor.h>
-#include <tvm/relay/qnn/transform.h>
+// #include <tvm/relay/qnn/transform.h>
 #include <tvm/relay/transform.h>
 #include <tvm/runtime/container/map.h>
 #include <tvm/runtime/device_api.h>
@@ -942,7 +942,8 @@ class Interpreter : public ExprFunctor<ObjectRef(const Expr& n)>,
 IRModule Prepare(IRModule mod, const CompilationConfig& config) {
   // Run minimal transforms on module to establish invariants needed by interpreter.
   transform::Sequential seq(
-      {transform::SimplifyInference(), qnn::transform::Legalize(),
+      {
+       //transform::SimplifyInference(), qnn::transform::Legalize(),
        // Figure out which devices should be used to execute.
        // TODO(mbs): Should ignore all existing annotations when constant folding
        transform::PlanDevices(config),

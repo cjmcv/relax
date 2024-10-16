@@ -301,10 +301,10 @@ bool Conv2DRel(const Array<Type>& types, int num_inputs, const Attrs& attrs,
 
     Array<PrimExpr> wshape;
     if (param->auto_scheduler_rewritten_layout.size() != 0) {
-      // works for the default kernel layout "HWIO"
-      ICHECK_EQ(param->kernel_layout, "HWIO");
-      wshape = auto_scheduler::GetShapeFromRewrittenLayout(param->auto_scheduler_rewritten_layout,
-                                                           {"ry", "rx", "rc", "ff"});
+      // // works for the default kernel layout "HWIO"
+      // ICHECK_EQ(param->kernel_layout, "HWIO");
+      // wshape = auto_scheduler::GetShapeFromRewrittenLayout(param->auto_scheduler_rewritten_layout,
+      //                                                      {"ry", "rx", "rc", "ff"});
     } else {
       wshape = weight->shape;
     }
@@ -513,10 +513,10 @@ bool Conv3DRel(const Array<Type>& types, int num_inputs, const Attrs& attrs,
 
     Array<PrimExpr> wshape;
     if (param->auto_scheduler_rewritten_layout.size() != 0) {
-      // works for the default kernel layout "DHWIO"
-      ICHECK_EQ(param->kernel_layout, "DHWIO");
-      wshape = auto_scheduler::GetShapeFromRewrittenLayout(param->auto_scheduler_rewritten_layout,
-                                                           {"rd", "rh", "rw", "rc", "cc"});
+      // // works for the default kernel layout "DHWIO"
+      // ICHECK_EQ(param->kernel_layout, "DHWIO");
+      // wshape = auto_scheduler::GetShapeFromRewrittenLayout(param->auto_scheduler_rewritten_layout,
+      //                                                      {"rd", "rh", "rw", "rc", "cc"});
     } else {
       wshape = weight->shape;
     }

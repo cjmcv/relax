@@ -181,10 +181,10 @@ bool BatchMatmulRel(const Array<Type>& types, int num_inputs, const Attrs& attrs
   bool transpose_b = param->transpose_b;
   Array<PrimExpr> y_shape{nullptr};
   if (param->auto_scheduler_rewritten_layout.size() != 0) {
-    y_shape = auto_scheduler::GetShapeFromRewrittenLayout(
-        param->auto_scheduler_rewritten_layout,
-        transpose_b ? tvm::runtime::Array<tvm::runtime::String>({"b", "j", "k"})
-                    : tvm::runtime::Array<tvm::runtime::String>({"b", "k", "j"}));
+    // y_shape = auto_scheduler::GetShapeFromRewrittenLayout(
+    //     param->auto_scheduler_rewritten_layout,
+    //     transpose_b ? tvm::runtime::Array<tvm::runtime::String>({"b", "j", "k"})
+    //                 : tvm::runtime::Array<tvm::runtime::String>({"b", "k", "j"}));
   } else if (param->meta_schedule_original_shape.size() != 0) {
     y_shape = param->meta_schedule_original_shape;
   } else {
