@@ -28,7 +28,7 @@
 #include <tvm/relax/type.h>
 #include <tvm/tir/op.h>
 
-#include "../../relay/transforms/pattern_utils.h"
+// #include "../../relay/transforms/pattern_utils.h"
 #include "utils.h"
 
 namespace tvm {

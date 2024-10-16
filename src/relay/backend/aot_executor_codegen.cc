@@ -1121,31 +1121,31 @@ class AOTExecutorCodegen : public MixedModeVisitor {
                     << ") is not one of the expected values";
     }
 
-    mod = transform::ToANormalForm()(mod);
-    mod = transform::InferType()(mod);
-    mod = transform::AnnotateUsedMemory()(mod);
+    // mod = transform::ToANormalForm()(mod);
+    // mod = transform::InferType()(mod);
+    // mod = transform::AnnotateUsedMemory()(mod);
 
-    IRModule lowered_mod =
-        tec::LowerTE(mod_name, config_, [this, workspace_byte_alignment](BaseFunc func) {
-          // We need to maintain the constant map for external
-          // functions so we pass this processing function which
-          // allows us to process each function as we lower it.
-          if (func->GetAttr<String>(attr::kCompiler).defined()) {
-            UpdateConstants(func, &params_);
-          }
+    IRModule lowered_mod = mod;
+        // tec::LowerTE(mod_name, config_, [this, workspace_byte_alignment](BaseFunc func) {
+        //   // We need to maintain the constant map for external
+        //   // functions so we pass this processing function which
+        //   // allows us to process each function as we lower it.
+        //   if (func->GetAttr<String>(attr::kCompiler).defined()) {
+        //     UpdateConstants(func, &params_);
+        //   }
 
-          // TODO(@areusch, @jroesch): We should refactor this to
-          // execute as a further pass, instead writing data to the
-          // lowering process directly.
-          tec::UpdateFunctionMetadata(func, this->function_metadata_, workspace_byte_alignment);
-        })(mod);
+        //   // TODO(@areusch, @jroesch): We should refactor this to
+        //   // execute as a further pass, instead writing data to the
+        //   // lowering process directly.
+        //   tec::UpdateFunctionMetadata(func, this->function_metadata_, workspace_byte_alignment);
+        // })(mod);
 
     transform::PassContext pass_ctx = transform::PassContext::Current();
     bool enable_remove_reshapes =
         pass_ctx->GetConfig<Bool>("relay.remove_standalone_reshapes.enable", Bool(true)).value();
-    if (enable_remove_reshapes) {
-      lowered_mod = transform::RemoveStandaloneReshapes()(lowered_mod);
-    }
+    // if (enable_remove_reshapes) {
+    //   lowered_mod = transform::RemoveStandaloneReshapes()(lowered_mod);
+    // }
     auto lowered_main = lowered_mod->Lookup("main");
     auto lowered_main_func = Downcast<Function>(lowered_main);
 

@@ -61,8 +61,8 @@ Array<meta_schedule::ExtractedTask> ExtractTask(IRModule mod, Target target,
   using meta_schedule::ModuleHash;
   backend::BindParamsInModule(mod, params);
   // is_vm=true for backward compatibility
-  Array<Pass> pass_seqs = relay::backend::GetPassPrefix(/*is_homogenous=*/true, /*is_vm=*/true);
-  pass_seqs.push_back(transform::FuseOps());
+  Array<Pass> pass_seqs;// = relay::backend::GetPassPrefix(/*is_homogenous=*/true, /*is_vm=*/true);
+  // pass_seqs.push_back(transform::FuseOps());
 
   mod = transform::Sequential(pass_seqs)(std::move(mod));
 

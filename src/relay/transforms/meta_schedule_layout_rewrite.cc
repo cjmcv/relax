@@ -147,13 +147,13 @@ Expr MetaScheduleLayoutRewriter::VisitExpr_(const CallNode* call) {
 
 namespace transform {
 
-Pass MetaScheduleLayoutRewrite() {
-  runtime::TypedPackedFunc<Function(Function, IRModule, PassContext)> pass_func =
-      [=](Function f, IRModule m, PassContext pc) -> Function {
-    return Downcast<Function>(MetaScheduleLayoutRewriter().Mutate(std::move(f)));
-  };
-  return CreateFunctionPass(pass_func, 3, "MetaScheduleLayoutRewrite", {"InferType"});
-}
+// Pass MetaScheduleLayoutRewrite() {
+//   runtime::TypedPackedFunc<Function(Function, IRModule, PassContext)> pass_func =
+//       [=](Function f, IRModule m, PassContext pc) -> Function {
+//     return Downcast<Function>(MetaScheduleLayoutRewriter().Mutate(std::move(f)));
+//   };
+//   return CreateFunctionPass(pass_func, 3, "MetaScheduleLayoutRewrite", {"InferType"});
+// }
 
 #define TVM_RELAY_META_SCHEDULE_LAYOUT_REWRITE_GET_ORIGINAL_SHAPE(Attrs, AttrType) \
   if (const auto* p = Attrs.as<AttrType>()) {                                      \
@@ -171,8 +171,8 @@ TVM_REGISTER_GLOBAL("relay.attrs.get_meta_schedule_original_shape")
       LOG(FATAL) << "TypeError: Unknown attribute: " << attrs;
       throw;
     });
-TVM_REGISTER_GLOBAL("relay._transform.MetaScheduleLayoutRewrite")
-    .set_body_typed(MetaScheduleLayoutRewrite);
+// TVM_REGISTER_GLOBAL("relay._transform.MetaScheduleLayoutRewrite")
+//     .set_body_typed(MetaScheduleLayoutRewrite);
 
 #undef TVM_RELAY_META_SCHEDULE_LAYOUT_REWRITE_GET_ORIGINAL_SHAPE
 

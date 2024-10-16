@@ -220,70 +220,70 @@ ExecutorCodegenMetadata::ExecutorCodegenMetadata(
 
 TVM_REGISTER_NODE_TYPE(ExecutorCodegenMetadataNode);
 
-Array<Pass> GetPassPrefix(bool is_homogeneous, bool is_vm) {
-  Array<Pass> pass_seqs;
-  // TODO(mbs): Would be nice to get spans on all diagnostics, but since they arg forgotton
-  // by most passes there's little utility in including this now. Plus we'd need to only do
-  // this if there's no existing spans to work from.
-  // pass_seqs.push_back(parser::AnnotateSpans());
-  Array<runtime::String> entry_functions{"main"};
-  pass_seqs.push_back(transform::RemoveUnusedFunctions(entry_functions));
-  pass_seqs.push_back(transform::ToBasicBlockNormalForm());
-  // Run all dialect legalization passes.
-  // pass_seqs.push_back(relay::qnn::transform::Legalize());
+// Array<Pass> GetPassPrefix(bool is_homogeneous, bool is_vm) {
+//   Array<Pass> pass_seqs;
+//   // TODO(mbs): Would be nice to get spans on all diagnostics, but since they arg forgotton
+//   // by most passes there's little utility in including this now. Plus we'd need to only do
+//   // this if there's no existing spans to work from.
+//   // pass_seqs.push_back(parser::AnnotateSpans());
+//   Array<runtime::String> entry_functions{"main"};
+//   // pass_seqs.push_back(transform::RemoveUnusedFunctions(entry_functions));
+//   pass_seqs.push_back(transform::ToBasicBlockNormalForm());
+//   // Run all dialect legalization passes.
+//   // pass_seqs.push_back(relay::qnn::transform::Legalize());
 
-  // Legalize pass is restricted to homogeneous execution for now.
-  if (is_homogeneous) {
-    pass_seqs.push_back(transform::Legalize());
-  }
+//   // Legalize pass is restricted to homogeneous execution for now.
+//   if (is_homogeneous) {
+//     pass_seqs.push_back(transform::Legalize());
+//   }
 
-  pass_seqs.push_back(transform::SimplifyInference());
+//   pass_seqs.push_back(transform::SimplifyInference());
 
-  if (is_vm) {
-    // eta expand to support constructors in argument position
-    pass_seqs.push_back(transform::EtaExpand(
-        /* expand_constructor */ true, /* expand_global_var */ false));
-  }
+//   if (is_vm) {
+//     // eta expand to support constructors in argument position
+//     pass_seqs.push_back(transform::EtaExpand(
+//         /* expand_constructor */ true, /* expand_global_var */ false));
+//   }
 
-  PackedFunc fskip = PackedFunc([](TVMArgs args, TVMRetValue* rv) {
-    Expr expr = args[0];
-    if (auto* call_node = expr.as<CallNode>()) {
-      auto op_node = call_node->op.as<OpNode>();
-      if (op_node->name == "cast") {
-        auto attrs = call_node->attrs.as<CastAttrs>();
-        if (attrs->dtype == DataType::Int(32)) {
-          *rv = true;
-        }
-      }
-    }
-    *rv = false;
-  });
-  pass_seqs.push_back(transform::EliminateCommonSubexpr(fskip));
-  pass_seqs.push_back(transform::CombineParallelConv2D(3));
-  pass_seqs.push_back(transform::CombineParallelDense(3));
-  pass_seqs.push_back(transform::CombineParallelBatchMatmul(3));
-  pass_seqs.push_back(transform::FoldConstant());
-  pass_seqs.push_back(transform::FoldScaleAxis());
-  pass_seqs.push_back(transform::SimplifyExpr());
-  pass_seqs.push_back(transform::CanonicalizeCast());
-  pass_seqs.push_back(transform::CanonicalizeOps());
-  pass_seqs.push_back(transform::FlattenAtrousConv());
+//   PackedFunc fskip = PackedFunc([](TVMArgs args, TVMRetValue* rv) {
+//     Expr expr = args[0];
+//     if (auto* call_node = expr.as<CallNode>()) {
+//       auto op_node = call_node->op.as<OpNode>();
+//       if (op_node->name == "cast") {
+//         auto attrs = call_node->attrs.as<CastAttrs>();
+//         if (attrs->dtype == DataType::Int(32)) {
+//           *rv = true;
+//         }
+//       }
+//     }
+//     *rv = false;
+//   });
+//   pass_seqs.push_back(transform::EliminateCommonSubexpr(fskip));
+//   pass_seqs.push_back(transform::CombineParallelConv2D(3));
+//   pass_seqs.push_back(transform::CombineParallelDense(3));
+//   pass_seqs.push_back(transform::CombineParallelBatchMatmul(3));
+//   pass_seqs.push_back(transform::FoldConstant());
+//   pass_seqs.push_back(transform::FoldScaleAxis());
+//   pass_seqs.push_back(transform::SimplifyExpr());
+//   pass_seqs.push_back(transform::CanonicalizeCast());
+//   pass_seqs.push_back(transform::CanonicalizeOps());
+//   pass_seqs.push_back(transform::FlattenAtrousConv());
 
-  // Alter layout transformation is currently only applied to homogeneous execution.
-  if (is_homogeneous) {
-    if (!is_vm) {
-      pass_seqs.push_back(transform::InferType());
-    }
-    pass_seqs.push_back(transform::AlterOpLayout());
-    pass_seqs.push_back(transform::SimplifyExprPostAlterOp());
-  }
+//   // Alter layout transformation is currently only applied to homogeneous execution.
+//   if (is_homogeneous) {
+//     if (!is_vm) {
+//       pass_seqs.push_back(transform::InferType());
+//     }
+//     pass_seqs.push_back(transform::AlterOpLayout());
+//     pass_seqs.push_back(transform::SimplifyExprPostAlterOp());
+//   }
 
-  // Fast math optimizations.
-  pass_seqs.push_back(transform::FastMath());
-  pass_seqs.push_back(transform::FoldConstant());
+//   // Fast math optimizations.
+//   pass_seqs.push_back(transform::FastMath());
+//   pass_seqs.push_back(transform::FoldConstant());
 
-  return pass_seqs;
-}
+//   return pass_seqs;
+// }
 
 std::unordered_map<Target, IRModule, TargetStrHash, TargetStrEqual>
 TargetModuleMapToTargetStrModuleMap(Map<Target, IRModule> input_map) {
@@ -446,12 +446,12 @@ TVM_REGISTER_GLOBAL("relay.backend.tir_converter.allow_extern")
       return DefaultTIRConverterImpl(args, constants, true);
     });
 
-TVM_REGISTER_GLOBAL("relay.backend.GetPassPrefixSeq")
-    .set_body_typed([](bool is_homogeneous, bool is_vm) {
-      auto pass_seqs = GetPassPrefix(is_homogeneous, is_vm);
-      transform::Sequential seq(pass_seqs);
-      return seq;
-    });
+// TVM_REGISTER_GLOBAL("relay.backend.GetPassPrefixSeq")
+//     .set_body_typed([](bool is_homogeneous, bool is_vm) {
+//       auto pass_seqs = GetPassPrefix(is_homogeneous, is_vm);
+//       transform::Sequential seq(pass_seqs);
+//       return seq;
+//     });
 
 }  // namespace backend
 }  // namespace relay

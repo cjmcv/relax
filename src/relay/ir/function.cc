@@ -147,22 +147,22 @@ TVM_REGISTER_GLOBAL("relay.ir.PrintIR")
       return false;
     });
 
-TVM_REGISTER_GLOBAL("relay.ir.WarnIfMalformed")
-    .set_body_typed([](const IRModule& mod, const BaseFunc& base_func) -> void {
-      if (auto relay_func = base_func.as<Function>()) {
-        Function func = Downcast<relay::Function>(relay::DeDup(relay_func.value()));
-        // Type check the item before we add it to the module.
-        auto fv = relay::FreeVars(func);
-        auto ftv = relay::FreeTypeVars(func, mod);
-        // TODO(@jroesch): refactor to use diagnostic context
-        ICHECK_EQ(fv.size(), 0) << "Function:" << std::endl
-                                << PrettyPrint(func) << std::endl
-                                << "contains free variables: " << fv;
-        ICHECK_EQ(ftv.size(), 0) << "Function:" << std::endl
-                                 << PrettyPrint(func) << std::endl
-                                 << "contains free type variables: " << fv;
-      }
-    });
+// TVM_REGISTER_GLOBAL("relay.ir.WarnIfMalformed")
+//     .set_body_typed([](const IRModule& mod, const BaseFunc& base_func) -> void {
+//       if (auto relay_func = base_func.as<Function>()) {
+//         Function func = Downcast<relay::Function>(relay::DeDup(relay_func.value()));
+//         // Type check the item before we add it to the module.
+//         auto fv = relay::FreeVars(func);
+//         auto ftv = relay::FreeTypeVars(func, mod);
+//         // TODO(@jroesch): refactor to use diagnostic context
+//         ICHECK_EQ(fv.size(), 0) << "Function:" << std::endl
+//                                 << PrettyPrint(func) << std::endl
+//                                 << "contains free variables: " << fv;
+//         ICHECK_EQ(ftv.size(), 0) << "Function:" << std::endl
+//                                  << PrettyPrint(func) << std::endl
+//                                  << "contains free type variables: " << fv;
+//       }
+//     });
 TVM_REGISTER_GLOBAL("relay.ir.IRModuleAdd")
     .set_body_typed([](IRModule mod, GlobalVar var, ObjectRef val, bool update) -> IRModule {
       if (val->IsInstance<BaseFuncNode>()) {
@@ -170,9 +170,9 @@ TVM_REGISTER_GLOBAL("relay.ir.IRModuleAdd")
       } else if (val->IsInstance<GlobalVarNode>()) {
         GlobalVar gv = Downcast<GlobalVar>(val);
         IRModule mod_copy(make_object<IRModuleNode>(*mod.operator->()));
-        mod_copy = relay::transform::EtaExpand(
-            /* expand_constructor */ false,
-            /* expand_global_var */ true)(mod_copy);
+        // mod_copy = relay::transform::EtaExpand(
+        //     /* expand_constructor */ false,
+        //     /* expand_global_var */ true)(mod_copy);
         auto func = mod_copy->Lookup(gv->name_hint);
         mod->Add(var, Downcast<relay::Function>(func), update);
       } else {

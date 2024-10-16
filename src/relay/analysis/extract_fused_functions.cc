@@ -64,20 +64,20 @@ class FusedFunctionExtractorWrapper : private ExprVisitor {
   }
 };
 
-namespace transform {
+// namespace transform {
 
-Pass ExtractFusedFunctions() {
-  runtime::TypedPackedFunc<IRModule(IRModule, PassContext)> pass_func =
-      [=](IRModule m, PassContext pc) { return FusedFunctionExtractorWrapper(m).Extract(); };
-  auto fused_function_extractor_pass = CreateModulePass(pass_func, 1, "ExtractFusedFunctions", {});
+// Pass ExtractFusedFunctions() {
+//   runtime::TypedPackedFunc<IRModule(IRModule, PassContext)> pass_func =
+//       [=](IRModule m, PassContext pc) { return FusedFunctionExtractorWrapper(m).Extract(); };
+//   auto fused_function_extractor_pass = CreateModulePass(pass_func, 1, "ExtractFusedFunctions", {});
 
-  return Sequential({SimplifyInference(), FuseOps(3), fused_function_extractor_pass},
-                    "ExtractFusedFunctions");
-}
+//   return Sequential({SimplifyInference(), FuseOps(3), fused_function_extractor_pass},
+//                     "ExtractFusedFunctions");
+// }
 
-TVM_REGISTER_GLOBAL("relay.analysis.ExtractFusedFunctions").set_body_typed(ExtractFusedFunctions);
+// TVM_REGISTER_GLOBAL("relay.analysis.ExtractFusedFunctions").set_body_typed(ExtractFusedFunctions);
 
-}  // namespace transform
+// }  // namespace transform
 
 }  // namespace relay
 }  // namespace tvm

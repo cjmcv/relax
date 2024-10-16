@@ -934,35 +934,35 @@ class Interpreter : public ExprFunctor<ObjectRef(const Expr& n)>,
   const Op& debug_op_;
 };
 
-/*!
- * Lowers all calls to primitives in \p mod appropriate for \p config. Returns the
- * rewritten \p mod and target-specific modules containing bindings for all TIR primitive
- * functions needed by the rewritten module.
- */
-IRModule Prepare(IRModule mod, const CompilationConfig& config) {
-  // Run minimal transforms on module to establish invariants needed by interpreter.
-  transform::Sequential seq(
-      {
-       //transform::SimplifyInference(), qnn::transform::Legalize(),
-       // Figure out which devices should be used to execute.
-       // TODO(mbs): Should ignore all existing annotations when constant folding
-       transform::PlanDevices(config),
-       // FuseOps will mark wrapped calls to prim-ops with the 'Primitive'
-       // attribute.
-       transform::FuseOps(/*fuse_opt_level=*/0),
-       // Use ANF to reduce number of cases to handle.
-       transform::ToANormalForm(),
-       // eta expand to support constructors in argument position.
-       transform::EtaExpand(
-           /*expand_constructor=*/true, /*expand_global_var=*/false),
-       transform::InferType(), tec::LowerTE(/*module_name=*/"intrp", config)});
+// /*!
+//  * Lowers all calls to primitives in \p mod appropriate for \p config. Returns the
+//  * rewritten \p mod and target-specific modules containing bindings for all TIR primitive
+//  * functions needed by the rewritten module.
+//  */
+// IRModule Prepare(IRModule mod, const CompilationConfig& config) {
+//   // Run minimal transforms on module to establish invariants needed by interpreter.
+//   transform::Sequential seq(
+//       {
+//        //transform::SimplifyInference(), qnn::transform::Legalize(),
+//        // Figure out which devices should be used to execute.
+//        // TODO(mbs): Should ignore all existing annotations when constant folding
+//        transform::PlanDevices(config),
+//        // FuseOps will mark wrapped calls to prim-ops with the 'Primitive'
+//        // attribute.
+//        transform::FuseOps(/*fuse_opt_level=*/0),
+//        // Use ANF to reduce number of cases to handle.
+//        transform::ToANormalForm(),
+//        // eta expand to support constructors in argument position.
+//        transform::EtaExpand(
+//            /*expand_constructor=*/true, /*expand_global_var=*/false),
+//        transform::InferType(), tec::LowerTE(/*module_name=*/"intrp", config)});
 
-  transform::PassContext pass_ctx = transform::PassContext::Current();
-  With<transform::PassContext> ctx(pass_ctx);
-  mod = seq(mod);
+//   transform::PassContext pass_ctx = transform::PassContext::Current();
+//   With<transform::PassContext> ctx(pass_ctx);
+//   mod = seq(mod);
 
-  return mod;
-}
+//   return mod;
+// }
 
 /*! \brief Check if an expression could be changed by \p Prepare.
  *
@@ -1005,121 +1005,121 @@ class NeedsPreparationVisitor : public ExprVisitor {
   }
 };
 
-TypedPackedFunc<ObjectRef(Array<Expr>)> EvalFunction(IRModule mod, Expr expr, Device device,
-                                                     Target target) {
-  VLOG_CONTEXT << "EvalFunction";
-  VLOG(1) << "evaling module:" << std::endl
-          << PrettyPrint(mod) << "and expression:" << std::endl
-          << PrettyPrint(expr);
+// TypedPackedFunc<ObjectRef(Array<Expr>)> EvalFunction(IRModule mod, Expr expr, Device device,
+//                                                      Target target) {
+//   VLOG_CONTEXT << "EvalFunction";
+//   VLOG(1) << "evaling module:" << std::endl
+//           << PrettyPrint(mod) << "and expression:" << std::endl
+//           << PrettyPrint(expr);
 
-  ICHECK_EQ(device.device_type, target->GetTargetDeviceType());
-  Array<Target> raw_targets = {target};
-  CompilationConfig config(transform::PassContext::Current(), raw_targets);
+//   ICHECK_EQ(device.device_type, target->GetTargetDeviceType());
+//   Array<Target> raw_targets = {target};
+//   CompilationConfig config(transform::PassContext::Current(), raw_targets);
 
-  //
-  // Step 1: Prepare mod.
-  //
+//   //
+//   // Step 1: Prepare mod.
+//   //
 
-  // If expr is simple enough we can avoid binding it into the module and
-  // just eval it directly.
-  NeedsPreparationVisitor visitor;
-  visitor.VisitExpr(expr);
+//   // If expr is simple enough we can avoid binding it into the module and
+//   // just eval it directly.
+//   NeedsPreparationVisitor visitor;
+//   visitor.VisitExpr(expr);
 
-  Expr expr_to_eval;
-  IRModule mod_with_expr;  // default empty
-  if (visitor.needs_preparation) {
-    GlobalVar main;
-    // Bind expr to a new zero-argument function so it can be prepared along with the module
-    // (if any).
-    std::pair<IRModule, GlobalVar> mod_and_global;
-    if (mod.defined()) {
-      // TODO(mbs): Type inference currently assumes all global functions in modules have
-      // known result types, and so each global function has it's body types inferred independently
-      // and in arbitrary order. However, the interpreter may be called with an expression relative
-      // to a 'main' which has no result type annotation, and that expressions will be bound into a
-      // fresh global below. Type inference then fails since 'main' has unknown type. We should
-      // allow inference on mutually recursive global functions. To workaround, infer the type
-      // of mod now. Obviously that won't work if 'main' itself calls other global functions of
-      // partial type, but it at least maintains legacy behavior.
-      transform::PassContext pass_ctx = transform::PassContext::Current();
-      With<transform::PassContext> ctx(pass_ctx);
-      mod = transform::InferType()(mod);
-      mod_and_global =
-          IRModule::FromExprInContext(expr, mod->functions, mod->type_definitions, mod->Imports());
-    } else {
-      mod_and_global = IRModule::FromExprInContext(expr);
-    }
-    mod_with_expr = mod_and_global.first;
-    expr_to_eval = mod_and_global.second;
-  } else {
-    if (mod.defined()) {
-      mod_with_expr = mod;
-    }
-    // Prepare won't change expr, so we don't need to worry about binding it into a module
-    // and can just eval it directly.
-    expr_to_eval = expr;
-  }
-  IRModule lowered_mod = Prepare(mod_with_expr, config);
+//   Expr expr_to_eval;
+//   IRModule mod_with_expr;  // default empty
+//   if (visitor.needs_preparation) {
+//     GlobalVar main;
+//     // Bind expr to a new zero-argument function so it can be prepared along with the module
+//     // (if any).
+//     std::pair<IRModule, GlobalVar> mod_and_global;
+//     if (mod.defined()) {
+//       // TODO(mbs): Type inference currently assumes all global functions in modules have
+//       // known result types, and so each global function has it's body types inferred independently
+//       // and in arbitrary order. However, the interpreter may be called with an expression relative
+//       // to a 'main' which has no result type annotation, and that expressions will be bound into a
+//       // fresh global below. Type inference then fails since 'main' has unknown type. We should
+//       // allow inference on mutually recursive global functions. To workaround, infer the type
+//       // of mod now. Obviously that won't work if 'main' itself calls other global functions of
+//       // partial type, but it at least maintains legacy behavior.
+//       transform::PassContext pass_ctx = transform::PassContext::Current();
+//       With<transform::PassContext> ctx(pass_ctx);
+//       mod = transform::InferType()(mod);
+//       mod_and_global =
+//           IRModule::FromExprInContext(expr, mod->functions, mod->type_definitions, mod->Imports());
+//     } else {
+//       mod_and_global = IRModule::FromExprInContext(expr);
+//     }
+//     mod_with_expr = mod_and_global.first;
+//     expr_to_eval = mod_and_global.second;
+//   } else {
+//     if (mod.defined()) {
+//       mod_with_expr = mod;
+//     }
+//     // Prepare won't change expr, so we don't need to worry about binding it into a module
+//     // and can just eval it directly.
+//     expr_to_eval = expr;
+//   }
+//   IRModule lowered_mod = Prepare(mod_with_expr, config);
 
-  std::shared_ptr<Interpreter> intrp = std::make_shared<Interpreter>(lowered_mod, config, device);
+//   std::shared_ptr<Interpreter> intrp = std::make_shared<Interpreter>(lowered_mod, config, device);
 
-  //
-  // Step 2: Evaluate target function to a closure.
-  //
-  ObjectRef object_ref = intrp->Eval(expr_to_eval);
-  if (auto opt = object_ref.as<InterpreterClosure>()) {
-    InterpreterClosure closure = opt.value();
-    ICHECK(closure->func.defined());
+//   //
+//   // Step 2: Evaluate target function to a closure.
+//   //
+//   ObjectRef object_ref = intrp->Eval(expr_to_eval);
+//   if (auto opt = object_ref.as<InterpreterClosure>()) {
+//     InterpreterClosure closure = opt.value();
+//     ICHECK(closure->func.defined());
 
-    return TypedPackedFunc<ObjectRef(Array<Expr>)>([intrp, closure](Array<Expr> args) {
-      VLOG_CONTEXT << "EvalFunction::Apply";
-      VLOG(1) << "evaling closure with " << args.size() << " arguments";
-      //
-      // Step 3: Apply closure to arguments.
-      //
-      ICHECK_NOTNULL(intrp);
-      ICHECK(closure.defined());
-      ICHECK(closure->func.defined());
-      Array<ObjectRef> evaled_args;
-      for (auto arg : args) {
-        NeedsPreparationVisitor visitor;
-        visitor.VisitExpr(arg);
-        ICHECK(!visitor.needs_preparation)
-            << "attempting to apply closure to expression which needs preparation: "
-            << PrettyPrint(arg);
-        evaled_args.push_back(intrp->Eval(arg));
-      }
-      return intrp->Invoke(closure, evaled_args);
-    });
-  } else {
-    LOG(FATAL) << "expecting expression to have function type and evaluate to a closure";
-  }
-}
+//     return TypedPackedFunc<ObjectRef(Array<Expr>)>([intrp, closure](Array<Expr> args) {
+//       VLOG_CONTEXT << "EvalFunction::Apply";
+//       VLOG(1) << "evaling closure with " << args.size() << " arguments";
+//       //
+//       // Step 3: Apply closure to arguments.
+//       //
+//       ICHECK_NOTNULL(intrp);
+//       ICHECK(closure.defined());
+//       ICHECK(closure->func.defined());
+//       Array<ObjectRef> evaled_args;
+//       for (auto arg : args) {
+//         NeedsPreparationVisitor visitor;
+//         visitor.VisitExpr(arg);
+//         ICHECK(!visitor.needs_preparation)
+//             << "attempting to apply closure to expression which needs preparation: "
+//             << PrettyPrint(arg);
+//         evaled_args.push_back(intrp->Eval(arg));
+//       }
+//       return intrp->Invoke(closure, evaled_args);
+//     });
+//   } else {
+//     LOG(FATAL) << "expecting expression to have function type and evaluate to a closure";
+//   }
+// }
 
-ObjectRef Eval(Expr expr, Map<GlobalTypeVar, TypeData> type_definitions,
-               std::unordered_set<String> import_set, Device device, Target target,
-               Map<String, ObjectRef> attrs) {
-  ICHECK_EQ(device.device_type, target->GetTargetDeviceType());
-  Array<Target> raw_targets = {target};
-  CompilationConfig config(transform::PassContext::Current(), raw_targets);
+// ObjectRef Eval(Expr expr, Map<GlobalTypeVar, TypeData> type_definitions,
+//                std::unordered_set<String> import_set, Device device, Target target,
+//                Map<String, ObjectRef> attrs) {
+//   ICHECK_EQ(device.device_type, target->GetTargetDeviceType());
+//   Array<Target> raw_targets = {target};
+//   CompilationConfig config(transform::PassContext::Current(), raw_targets);
 
-  std::pair<IRModule, GlobalVar> mod_and_global =
-      IRModule::FromExprInContext(expr, /*global_funcs=*/{}, type_definitions, import_set);
+//   std::pair<IRModule, GlobalVar> mod_and_global =
+//       IRModule::FromExprInContext(expr, /*global_funcs=*/{}, type_definitions, import_set);
 
-  IRModule mod = Prepare(WithAttrs(mod_and_global.first, {attrs}), config);
+//   IRModule mod = Prepare(WithAttrs(mod_and_global.first, {attrs}), config);
 
-  Interpreter intrp(mod, config, device);
-  Expr expr_to_eval = mod->GetGlobalVar(mod_and_global.second->name_hint);
-  if (expr.as<BaseFuncNode>() == nullptr) {
-    // TODO(mbs): IRModule::FromExpr will implicitly close over the free vars of expr
-    // unless it is a function, so we must reverse that in the expression to eval.
-    // This should done more systematically.
-    expr_to_eval = Call(expr_to_eval, {});
-  }
-  return intrp.Eval(expr_to_eval);
-}
+//   Interpreter intrp(mod, config, device);
+//   Expr expr_to_eval = mod->GetGlobalVar(mod_and_global.second->name_hint);
+//   if (expr.as<BaseFuncNode>() == nullptr) {
+//     // TODO(mbs): IRModule::FromExpr will implicitly close over the free vars of expr
+//     // unless it is a function, so we must reverse that in the expression to eval.
+//     // This should done more systematically.
+//     expr_to_eval = Call(expr_to_eval, {});
+//   }
+//   return intrp.Eval(expr_to_eval);
+// }
 
-TVM_REGISTER_GLOBAL("relay.backend.EvalFunction").set_body_typed(EvalFunction);
+// TVM_REGISTER_GLOBAL("relay.backend.EvalFunction").set_body_typed(EvalFunction);
 
 }  // namespace relay
 }  // namespace tvm
