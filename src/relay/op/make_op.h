@@ -31,8 +31,8 @@
 #include <tvm/tir/index_map.h>
 
 // Include Templated Make Functions
-#include "nn/convolution_make.h"
-#include "nn/pooling.h"
+// #include "nn/convolution_make.h"
+// #include "nn/pooling.h"
 
 namespace tvm {
 namespace relay {

@@ -78,72 +78,72 @@ bool IsSupportedOp(const OpNode* op) {
     Result = Attrs(n);                                                              \
   }
 
-// Mutate ops in a function
-class MetaScheduleFuncMutator : public ExprMutator {
- public:
-  explicit MetaScheduleFuncMutator(std::deque<tir::IndexMap>&& layout_queue)
-      : layout_queue_(std::move(layout_queue)) {}
+// // Mutate ops in a function
+// class MetaScheduleFuncMutator : public ExprMutator {
+//  public:
+//   explicit MetaScheduleFuncMutator(std::deque<tir::IndexMap>&& layout_queue)
+//       : layout_queue_(std::move(layout_queue)) {}
 
-  Expr VisitExpr_(const CallNode* call) {
-    Expr expr = ExprMutator::VisitExpr_(call);
-    if (layout_queue_.empty()) {
-      return expr;
-    }
-    if (const auto* call = expr.as<CallNode>()) {
-      if (const auto* op = call->op.as<OpNode>()) {
-        if (IsSupportedOp(op)) {
-          ICHECK_EQ(call->args.size(), 2);
-          tir::IndexMap index_map = layout_queue_.front();
-          layout_queue_.pop_front();
-          Array<PrimExpr> shape;
-          if (call->args[1]->IsInstance<VarNode>()) {
-            Var var = Downcast<Var>(call->args[1]);
-            shape = Downcast<TensorType>(var->type_annotation)->shape;
-          } else if (const ConstantNode* cnst = call->args[1].as<ConstantNode>()) {
-            shape = cnst->tensor_type()->shape;
-          } else {
-            LOG(FATAL) << "Unexpected input " << call->args[1];
-          }
-          Attrs attrs{nullptr};
-          TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, Conv2DAttrs, shape, attrs);
-          TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, Conv2DWinogradAttrs, shape, attrs);
-          TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, Conv3DAttrs, shape, attrs);
-          TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, MatmulAttrs, shape, attrs);
-          TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, DenseAttrs, shape, attrs);
-          TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, BatchMatmulAttrs, shape, attrs);
-          ICHECK(attrs.defined()) << "TypeError: Unknown attribute: " << call->attrs;
-          expr = Call(call->op,
-                      {call->args[0], MakeMetaScheduleLayoutTransform(call->args[1], index_map)},
-                      attrs);
-        }
-      }
-    }
-    return expr;
-  }
+//   Expr VisitExpr_(const CallNode* call) {
+//     Expr expr = ExprMutator::VisitExpr_(call);
+//     if (layout_queue_.empty()) {
+//       return expr;
+//     }
+//     if (const auto* call = expr.as<CallNode>()) {
+//       if (const auto* op = call->op.as<OpNode>()) {
+//         if (IsSupportedOp(op)) {
+//           ICHECK_EQ(call->args.size(), 2);
+//           tir::IndexMap index_map = layout_queue_.front();
+//           layout_queue_.pop_front();
+//           Array<PrimExpr> shape;
+//           if (call->args[1]->IsInstance<VarNode>()) {
+//             Var var = Downcast<Var>(call->args[1]);
+//             shape = Downcast<TensorType>(var->type_annotation)->shape;
+//           } else if (const ConstantNode* cnst = call->args[1].as<ConstantNode>()) {
+//             shape = cnst->tensor_type()->shape;
+//           } else {
+//             LOG(FATAL) << "Unexpected input " << call->args[1];
+//           }
+//           Attrs attrs{nullptr};
+//           TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, Conv2DAttrs, shape, attrs);
+//           TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, Conv2DWinogradAttrs, shape, attrs);
+//           TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, Conv3DAttrs, shape, attrs);
+//           TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, MatmulAttrs, shape, attrs);
+//           TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, DenseAttrs, shape, attrs);
+//           TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE(call->attrs, BatchMatmulAttrs, shape, attrs);
+//           ICHECK(attrs.defined()) << "TypeError: Unknown attribute: " << call->attrs;
+//           expr = Call(call->op,
+//                       {call->args[0], MakeMetaScheduleLayoutTransform(call->args[1], index_map)},
+//                       attrs);
+//         }
+//       }
+//     }
+//     return expr;
+//   }
 
- private:
-  std::deque<tir::IndexMap> layout_queue_;
-};
+//  private:
+//   std::deque<tir::IndexMap> layout_queue_;
+// };
 
 #undef TVM_RELAY_LAYOUT_WITH_ORIGINAL_SHAPE
 
-Expr MetaScheduleLayoutRewriter::VisitExpr_(const CallNode* call) {
-  Expr expr = ExprMutator::VisitExpr_(call);
-  call = expr.as<CallNode>();
-  if (call != nullptr) {
-    if (const auto* func = call->op.as<FunctionNode>()) {
-      LayoutIndexQueue* self = LayoutIndexQueue::Global();
-      self->queue_.clear();
-      tec::PrimFuncFor(GetRef<Function>(func), Target::Current());
-      if (!self->queue_.empty()) {
-        std::deque<tir::IndexMap> queue = std::move(self->queue_);
-        self->queue_.clear();
-        return MetaScheduleFuncMutator(std::move(queue)).VisitExpr(expr);
-      }
-    }
-  }
-  return expr;
-}
+// Expr MetaScheduleLayoutRewriter::VisitExpr_(const CallNode* call) {
+//   Expr expr = ExprMutator::VisitExpr_(call);
+//   call = expr.as<CallNode>();
+//   if (call != nullptr) {
+//     if (const auto* func = call->op.as<FunctionNode>()) {
+//       LayoutIndexQueue* self = LayoutIndexQueue::Global();
+//       self->queue_.clear();
+//       tec::PrimFuncFor(GetRef<Function>(func), Target::Current());
+//       if (!self->queue_.empty()) {
+//         std::deque<tir::IndexMap> queue = std::move(self->queue_);
+//         self->queue_.clear();
+//         return MetaScheduleFuncMutator(std::move(queue)).VisitExpr(expr);
+//       }
+//     }
+//   }
+//   return expr;
+// }
 
 namespace transform {
 
