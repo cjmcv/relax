@@ -31,7 +31,7 @@
 #include <tvm/relay/op_attr_types.h>
 #include <tvm/relay/pattern_functor.h>
 
-#include "../transforms/pass_utils.h"
+// #include "../transforms/pass_utils.h"
 
 namespace tvm {
 namespace relay {
@@ -430,41 +430,41 @@ bool IsAllPositiveConstant(const Expr& expr) {
   }
 }
 
-Type TypeSubst(const Type& type, const TypeVar& tvar, const Type& subst) {
-  return TypeSubst(type, tvm::Map<TypeVar, Type>({{tvar, subst}}));
-}
+// Type TypeSubst(const Type& type, const TypeVar& tvar, const Type& subst) {
+//   return TypeSubst(type, tvm::Map<TypeVar, Type>({{tvar, subst}}));
+// }
 
-Expr TypeSubst(const Expr& expr, const TypeVar& tvar, const Type& subst) {
-  return TypeSubst(expr, tvm::Map<TypeVar, Type>({{tvar, subst}}));
-}
+// Expr TypeSubst(const Expr& expr, const TypeVar& tvar, const Type& subst) {
+//   return TypeSubst(expr, tvm::Map<TypeVar, Type>({{tvar, subst}}));
+// }
 
 Type TypeSubst(const Type& type, const tvm::Map<TypeVar, Type>& subst_map) {
   return Bind(type, subst_map);
 }
 
-Expr TypeSubst(const Expr& expr, const tvm::Map<TypeVar, Type>& subst_map) {
-  class TypeSubstMutator : public ExprMutator, public PatternMutator {
-   public:
-    explicit TypeSubstMutator(const tvm::Map<TypeVar, Type>& subst_map) : subst_map_(subst_map) {}
-    Type VisitType(const Type& t) final { return TypeSubst(t, subst_map_); }
-    Var VisitVar(const Var& v) final { return Downcast<Var>(VisitExpr(v)); }
+// Expr TypeSubst(const Expr& expr, const tvm::Map<TypeVar, Type>& subst_map) {
+//   class TypeSubstMutator : public ExprMutator, public PatternMutator {
+//    public:
+//     explicit TypeSubstMutator(const tvm::Map<TypeVar, Type>& subst_map) : subst_map_(subst_map) {}
+//     Type VisitType(const Type& t) final { return TypeSubst(t, subst_map_); }
+//     Var VisitVar(const Var& v) final { return Downcast<Var>(VisitExpr(v)); }
 
-    Pattern VisitPattern(const Pattern& p) final { return PatternMutator::VisitPattern(p); }
+//     Pattern VisitPattern(const Pattern& p) final { return PatternMutator::VisitPattern(p); }
 
-    Clause VisitClause(const Clause& c) final {
-      Pattern pat = VisitPattern(c->lhs);
-      return Clause(pat, VisitExpr(c->rhs));
-    }
+//     Clause VisitClause(const Clause& c) final {
+//       Pattern pat = VisitPattern(c->lhs);
+//       return Clause(pat, VisitExpr(c->rhs));
+//     }
 
-   private:
-    const tvm::Map<TypeVar, Type>& subst_map_;
-  };
-  ICHECK(WellFormed(expr));
-  auto ret = TypeSubstMutator(subst_map).VisitExpr(expr);
-  ICHECK_EQ(FreeVars(expr).size(), FreeVars(ret).size());
-  ICHECK(WellFormed(ret));
-  return ret;
-}
+//    private:
+//     const tvm::Map<TypeVar, Type>& subst_map_;
+//   };
+//   ICHECK(WellFormed(expr));
+//   auto ret = TypeSubstMutator(subst_map).VisitExpr(expr);
+//   ICHECK_EQ(FreeVars(expr).size(), FreeVars(ret).size());
+//   ICHECK(WellFormed(ret));
+//   return ret;
+// }
 
 struct IsDynamicVisitor : public TypeVisitor {
   bool is_dyn{false};
@@ -486,27 +486,27 @@ bool IsDynamic(const Type& ty) {
 
 TVM_REGISTER_GLOBAL("relay.ir.IsDynamic").set_body_typed(IsDynamic);
 
-bool IsDataDependent(const CallNode* call) {
-  static auto tshape_data_dependent = Op::GetAttrMap<TShapeDataDependent>("TShapeDataDependent");
-  Op op = Downcast<Op>(call->op);
+// bool IsDataDependent(const CallNode* call) {
+//   static auto tshape_data_dependent = Op::GetAttrMap<TShapeDataDependent>("TShapeDataDependent");
+//   Op op = Downcast<Op>(call->op);
 
-  if (!tshape_data_dependent.count(op)) {
-    return false;
-  }
+//   if (!tshape_data_dependent.count(op)) {
+//     return false;
+//   }
 
-  if (op->name == "strided_slice") {
-    if (const auto* attrs = call->attrs.as<StridedSliceAttrs>()) {
-      if (attrs->begin && attrs->end && attrs->strides) {
-        // not data dependent if begin, end and strides exist
-        return false;
-      }
-    }
-  }
+//   if (op->name == "strided_slice") {
+//     if (const auto* attrs = call->attrs.as<StridedSliceAttrs>()) {
+//       if (attrs->begin && attrs->end && attrs->strides) {
+//         // not data dependent if begin, end and strides exist
+//         return false;
+//       }
+//     }
+//   }
 
-  for (auto req : tshape_data_dependent[op]) {
-    if (req->value != 0) return true;
-  }
-  return false;
-}
+//   for (auto req : tshape_data_dependent[op]) {
+//     if (req->value != 0) return true;
+//   }
+//   return false;
+// }
 }  // namespace relay
 }  // namespace tvm

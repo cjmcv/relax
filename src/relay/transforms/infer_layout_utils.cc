@@ -29,7 +29,7 @@
 #include <utility>
 #include <vector>
 
-#include "pattern_utils.h"
+// #include "pattern_utils.h"
 #include "tvm/runtime/logging.h"
 
 namespace tvm {

@@ -35,7 +35,7 @@
 #include <tuple>
 #include <utility>
 
-#include "pattern_utils.h"
+// #include "pattern_utils.h"
 
 namespace tvm {
 namespace relay {
