@@ -43,7 +43,7 @@
 #include "../../ir/attr_functor.h"
 #include "../../support/scalars.h"
 #include "../analysis/dependency_graph.h"
-#include "../parser/meta_ref.h"
+// #include "../parser/meta_ref.h"
 #include "doc.h"
 #include "meta_data.h"
 #include "text_printer.h"

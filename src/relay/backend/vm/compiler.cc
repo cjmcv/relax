@@ -31,7 +31,7 @@
 #include <tvm/relay/error.h>
 #include <tvm/relay/expr_functor.h>
 #include <tvm/relay/interpreter.h>
-#include <tvm/relay/parser.h>
+// #include <tvm/relay/parser.h>
 // #include <tvm/relay/qnn/transform.h>
 #include <tvm/relay/runtime.h>
 #include <tvm/relay/transform.h>
