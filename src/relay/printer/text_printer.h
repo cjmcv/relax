@@ -42,7 +42,7 @@
 #include <vector>
 
 #include "../../ir/attr_functor.h"
-#include "../analysis/dependency_graph.h"
+// #include "../analysis/dependency_graph.h"
 #include "doc.h"
 #include "meta_data.h"
 
@@ -51,181 +51,181 @@ namespace relay {
 
 class TextPrinter;
 
-class RelayTextPrinter : public ExprFunctor<Doc(const Expr&)>,
-                         public PatternFunctor<Doc(const Pattern&)>,
-                         public TypeFunctor<Doc(const Type&)>,
-                         public AttrFunctor<Doc(const ObjectRef&)> {
- public:
-  explicit RelayTextPrinter(bool show_meta_data, TextMetaDataContext* meta,
-                            runtime::TypedPackedFunc<std::string(ObjectRef)> annotate)
-      : show_meta_data_(show_meta_data), annotate_(annotate), meta_(meta) {}
-  Doc VisitExpr(const Expr& expr) override;
-  virtual Doc VisitLeaf(const Expr& expr);
-  virtual bool CheckVisited(const Expr& expr);
+// class RelayTextPrinter : public ExprFunctor<Doc(const Expr&)>,
+//                          public PatternFunctor<Doc(const Pattern&)>,
+//                          public TypeFunctor<Doc(const Type&)>,
+//                          public AttrFunctor<Doc(const ObjectRef&)> {
+//  public:
+//   explicit RelayTextPrinter(bool show_meta_data, TextMetaDataContext* meta,
+//                             runtime::TypedPackedFunc<std::string(ObjectRef)> annotate)
+//       : show_meta_data_(show_meta_data), annotate_(annotate), meta_(meta) {}
+//   Doc VisitExpr(const Expr& expr) override;
+//   virtual Doc VisitLeaf(const Expr& expr);
+//   virtual bool CheckVisited(const Expr& expr);
 
-  /*!
-   * \brief Print additional info about expr in comment.
-   * \param expr The expression.
-   */
-  Doc PrintOptionalInfo(const Expr& expr);
-  // indent a new body
-  Doc PrintBody(const ObjectRef& node, int indent = 2);
-  // create a new scope by creating a new printer object. This allows temp var
-  // numbers to be reused and prevents hoisted vars from escaping too far
-  Doc PrintScope(const ObjectRef& node);
-  Doc PrintFinal(const ObjectRef& node);
+//   /*!
+//    * \brief Print additional info about expr in comment.
+//    * \param expr The expression.
+//    */
+//   Doc PrintOptionalInfo(const Expr& expr);
+//   // indent a new body
+//   Doc PrintBody(const ObjectRef& node, int indent = 2);
+//   // create a new scope by creating a new printer object. This allows temp var
+//   // numbers to be reused and prevents hoisted vars from escaping too far
+//   Doc PrintScope(const ObjectRef& node);
+//   Doc PrintFinal(const ObjectRef& node);
 
-  /*!
-   * \brief Returns \p attrs printed using the generic attribute visitor, as a sequence
-   * of key=value entries, if any.
-   */
-  void AppendGenericAttrs(std::vector<Doc>* docs, const Attrs& attrs, bool include_type_key);
+//   /*!
+//    * \brief Returns \p attrs printed using the generic attribute visitor, as a sequence
+//    * of key=value entries, if any.
+//    */
+//   void AppendGenericAttrs(std::vector<Doc>* docs, const Attrs& attrs, bool include_type_key);
 
-  /*!
-   * \brief Returns \p attrs printed as a sequence of key=value entries, if any.
-   * This is used for call attributes.
-   */
-  std::vector<Doc> PrintCallAttrs(const Attrs& attrs, const Expr& op);
+//   /*!
+//    * \brief Returns \p attrs printed as a sequence of key=value entries, if any.
+//    * This is used for call attributes.
+//    */
+//   std::vector<Doc> PrintCallAttrs(const Attrs& attrs, const Expr& op);
 
-  /*!
-   * \brief Returns \p dict_attrs printed as a sequence of key=value entries, if any.
-   * This is used for function definition attributes.
-   */
-  std::vector<Doc> PrintDictAttrs(const DictAttrs& dict_attrs);
-  std::vector<Doc> PrintDictAttrs(const Map<String, ObjectRef>& dict_attrs);
+//   /*!
+//    * \brief Returns \p dict_attrs printed as a sequence of key=value entries, if any.
+//    * This is used for function definition attributes.
+//    */
+//   std::vector<Doc> PrintDictAttrs(const DictAttrs& dict_attrs);
+//   std::vector<Doc> PrintDictAttrs(const Map<String, ObjectRef>& dict_attrs);
 
-  /*!
-   * \brief Returns \p value printed as the rhs of an attribute key=value entry. If \p force_meta
-   * is true then value is printed in meta[...] for irrespective of the show_meta_data_ flag.
-   */
-  Doc PrintAttributeValue(const ObjectRef& value, bool force_meta = false);
+//   /*!
+//    * \brief Returns \p value printed as the rhs of an attribute key=value entry. If \p force_meta
+//    * is true then value is printed in meta[...] for irrespective of the show_meta_data_ flag.
+//    */
+//   Doc PrintAttributeValue(const ObjectRef& value, bool force_meta = false);
 
-  /*!
-   * \brief Returns \p attrs printed as a self-contained value, ie wrapped in braces.
-   */
-  Doc PrintAttrsAsAttributeValue(const Attrs& attrs);
+//   /*!
+//    * \brief Returns \p attrs printed as a self-contained value, ie wrapped in braces.
+//    */
+//   Doc PrintAttrsAsAttributeValue(const Attrs& attrs);
 
-  /*!
-   * \brief Returns \p map printed as a self-contained value, ie wrapped in braces.
-   */
-  Doc PrintMapAsAttributeValue(const Map<ObjectRef, ObjectRef>& map);
+//   /*!
+//    * \brief Returns \p map printed as a self-contained value, ie wrapped in braces.
+//    */
+//   Doc PrintMapAsAttributeValue(const Map<ObjectRef, ObjectRef>& map);
 
-  Doc PrintSpan(const Span& span);
+//   Doc PrintSpan(const Span& span);
 
-  Doc Print(const ObjectRef& node, bool meta = false, bool try_inline = false);
+//   Doc Print(const ObjectRef& node, bool meta = false, bool try_inline = false);
 
-  Doc TempVar(int n);
-  Doc AllocTemp();
-  /*!
-   * \brief get a unique name with the corresponding prefix
-   * \param prefix The prefix of the name
-   * \return The returned name.
-   */
-  Doc GetUniqueName(const std::string& prefix);
-  Doc Print(Kind k);
-  /*!
-   * \brief Allocate name to a type variable.
-   * \param var The input type variable.
-   * \return The corresponding name.
-   */
-  Doc AllocTypeVar(const TypeVar& var);
-  /*!
-   * \brief Allocate name to a variable.
-   * \param var The input variable.
-   * \return The corresponding name.
-   */
-  Doc AllocVar(const Var& var);
-  bool IsUnique(const Expr& expr);
-  bool AlwaysInline(const Expr& expr);
+//   Doc TempVar(int n);
+//   Doc AllocTemp();
+//   /*!
+//    * \brief get a unique name with the corresponding prefix
+//    * \param prefix The prefix of the name
+//    * \return The returned name.
+//    */
+//   Doc GetUniqueName(const std::string& prefix);
+//   Doc Print(Kind k);
+//   /*!
+//    * \brief Allocate name to a type variable.
+//    * \param var The input type variable.
+//    * \return The corresponding name.
+//    */
+//   Doc AllocTypeVar(const TypeVar& var);
+//   /*!
+//    * \brief Allocate name to a variable.
+//    * \param var The input variable.
+//    * \return The corresponding name.
+//    */
+//   Doc AllocVar(const Var& var);
+//   bool IsUnique(const Expr& expr);
+//   bool AlwaysInline(const Expr& expr);
 
-  Doc PrintFunc(const Doc& prefix, const relay::Function& fn);
-  Doc PrintFunc(const Doc& prefix, const BaseFunc& base_func);
-  Doc PrintMod(const IRModule& mod);
+//   Doc PrintFunc(const Doc& prefix, const relay::Function& fn);
+//   Doc PrintFunc(const Doc& prefix, const BaseFunc& base_func);
+//   Doc PrintMod(const IRModule& mod);
 
-  //------------------------------------
-  // Overload of Expr printing functions
-  //------------------------------------
-  Doc PrintExpr(const Expr& expr, bool meta, bool try_inline, bool optional_info = true);
-  // Should only be triggered when op is a free variable being visited for the
-  // first time.
-  Doc VisitExpr_(const VarNode* op) final;
-  Doc VisitExpr_(const ConstantNode* op) final;
-  Doc VisitExpr_(const TupleNode* op) final;
-  Doc VisitExpr_(const TupleGetItemNode* op) final;
-  Doc VisitExpr_(const IfNode* op) final;
-  Doc VisitExpr_(const LetNode* op) final;
-  Doc VisitExpr_(const FunctionNode* op) final;
-  Doc VisitExpr_(const GlobalVarNode* op) final;
-  Doc VisitExpr_(const OpNode* op) final;
-  Doc VisitExpr_(const CallNode* op) final;
-  Doc VisitExpr_(const RefCreateNode* op) final;
-  Doc VisitExpr_(const RefReadNode* op) final;
-  Doc VisitExpr_(const RefWriteNode* op) final;
-  Doc VisitExpr_(const MatchNode* op) final;
-  Doc PrintPattern(const Pattern& pattern, bool meta);
-  Doc VisitPattern_(const PatternConstructorNode* p) final;
-  Doc VisitPattern_(const PatternTupleNode* pt) final;
-  Doc VisitPattern_(const PatternWildcardNode* pw) final;
-  Doc VisitPattern_(const PatternVarNode* pv) final;
-  Doc VisitExpr_(const ConstructorNode* n) final;
-  //------------------------------------
-  // Overload of Type printing functions
-  //------------------------------------
-  Doc PrintType(const Type& type, bool meta);
-  Doc VisitTypeDefault_(const Object* node) final;
-  Doc VisitType_(const TypeVarNode* node) final;
-  Doc VisitType_(const GlobalTypeVarNode* node) final;
-  Doc VisitType_(const TypeCallNode* node) final;
-  Doc PrintDType(DataType dtype);
-  Doc VisitType_(const TensorTypeNode* node) final;
-  Doc VisitType_(const TupleTypeNode* node) final;
-  Doc VisitType_(const FuncTypeNode* node) final;
-  Doc VisitType_(const RelayRefTypeNode* node) final;
-  Doc VisitType_(const TypeDataNode* node) final;
-  //------------------------------------
-  // Overload of Attr printing functions
-  //------------------------------------
-  Doc VisitAttrDefault_(const Object* op) final;
-  Doc VisitAttr_(const ArrayNode* op) final;
-  Doc VisitAttr_(const tir::IntImmNode* op) final;
-  Doc VisitAttr_(const tir::FloatImmNode* op) final;
-  Doc VisitAttr_(const tir::StringImmNode* op) final;
+//   //------------------------------------
+//   // Overload of Expr printing functions
+//   //------------------------------------
+//   Doc PrintExpr(const Expr& expr, bool meta, bool try_inline, bool optional_info = true);
+//   // Should only be triggered when op is a free variable being visited for the
+//   // first time.
+//   Doc VisitExpr_(const VarNode* op) final;
+//   Doc VisitExpr_(const ConstantNode* op) final;
+//   Doc VisitExpr_(const TupleNode* op) final;
+//   Doc VisitExpr_(const TupleGetItemNode* op) final;
+//   Doc VisitExpr_(const IfNode* op) final;
+//   Doc VisitExpr_(const LetNode* op) final;
+//   Doc VisitExpr_(const FunctionNode* op) final;
+//   Doc VisitExpr_(const GlobalVarNode* op) final;
+//   Doc VisitExpr_(const OpNode* op) final;
+//   Doc VisitExpr_(const CallNode* op) final;
+//   Doc VisitExpr_(const RefCreateNode* op) final;
+//   Doc VisitExpr_(const RefReadNode* op) final;
+//   Doc VisitExpr_(const RefWriteNode* op) final;
+//   Doc VisitExpr_(const MatchNode* op) final;
+//   Doc PrintPattern(const Pattern& pattern, bool meta);
+//   Doc VisitPattern_(const PatternConstructorNode* p) final;
+//   Doc VisitPattern_(const PatternTupleNode* pt) final;
+//   Doc VisitPattern_(const PatternWildcardNode* pw) final;
+//   Doc VisitPattern_(const PatternVarNode* pv) final;
+//   Doc VisitExpr_(const ConstructorNode* n) final;
+//   //------------------------------------
+//   // Overload of Type printing functions
+//   //------------------------------------
+//   Doc PrintType(const Type& type, bool meta);
+//   Doc VisitTypeDefault_(const Object* node) final;
+//   Doc VisitType_(const TypeVarNode* node) final;
+//   Doc VisitType_(const GlobalTypeVarNode* node) final;
+//   Doc VisitType_(const TypeCallNode* node) final;
+//   Doc PrintDType(DataType dtype);
+//   Doc VisitType_(const TensorTypeNode* node) final;
+//   Doc VisitType_(const TupleTypeNode* node) final;
+//   Doc VisitType_(const FuncTypeNode* node) final;
+//   Doc VisitType_(const RelayRefTypeNode* node) final;
+//   Doc VisitType_(const TypeDataNode* node) final;
+//   //------------------------------------
+//   // Overload of Attr printing functions
+//   //------------------------------------
+//   Doc VisitAttrDefault_(const Object* op) final;
+//   Doc VisitAttr_(const ArrayNode* op) final;
+//   Doc VisitAttr_(const tir::IntImmNode* op) final;
+//   Doc VisitAttr_(const tir::FloatImmNode* op) final;
+//   Doc VisitAttr_(const tir::StringImmNode* op) final;
 
- private:
-  /*! \brief Whether to print meta data. */
-  bool show_meta_data_;
-  /*! \brief additional comment function */
-  runtime::TypedPackedFunc<std::string(ObjectRef)> annotate_;
-  /*! \brief Stack of docs to implement scoped GNFing. */
-  std::vector<Doc> doc_stack_{};
-  /*! \brief Set for introduced vars */
-  std::unordered_set<Expr, ObjectPtrHash, ObjectPtrEqual> var_memo_;
-  /*! \brief Set for exprs have been printed optional information */
-  std::unordered_set<Expr, ObjectPtrHash, ObjectPtrEqual> opt_info_memo_;
-  /*! \brief Map for result and memo_ diffs for visited expression */
-  std::unordered_map<Expr, Doc, ObjectPtrHash, ObjectPtrEqual> result_memo_;
-  /*! \brief Map from Expr to Doc */
-  std::unordered_map<Expr, Doc, ObjectPtrHash, ObjectPtrEqual> memo_;
-  /*! \brief Map from Type to Doc */
-  std::unordered_map<Type, Doc, ObjectPtrHash, ObjectPtrEqual> memo_type_;
-  /*! \brief Map from Type to Doc */
-  std::unordered_map<Pattern, Doc, ObjectPtrHash, ObjectPtrEqual> memo_pattern_;
-  /*! \brief name allocation map */
-  std::unordered_map<std::string, int> name_alloc_map_;
-  /*! \brief meta data context */
-  TextMetaDataContext* meta_;
-  /*! \brief counter of temporary variable */
-  size_t temp_var_counter_{0};
-  /*! \brief whether the printer is currently in an ADT definition */
-  bool in_adt_def_;
-  /*! \brief arena for dependency graph */
-  support::Arena arena_;
-  /*! \brief dependency graph of the expr */
-  DependencyGraph dg_;
-  class AttrPrinter;
-  friend class AttrPrinter;
-  friend class tvm::relay::TextPrinter;
-};
+//  private:
+//   /*! \brief Whether to print meta data. */
+//   bool show_meta_data_;
+//   /*! \brief additional comment function */
+//   runtime::TypedPackedFunc<std::string(ObjectRef)> annotate_;
+//   /*! \brief Stack of docs to implement scoped GNFing. */
+//   std::vector<Doc> doc_stack_{};
+//   /*! \brief Set for introduced vars */
+//   std::unordered_set<Expr, ObjectPtrHash, ObjectPtrEqual> var_memo_;
+//   /*! \brief Set for exprs have been printed optional information */
+//   std::unordered_set<Expr, ObjectPtrHash, ObjectPtrEqual> opt_info_memo_;
+//   /*! \brief Map for result and memo_ diffs for visited expression */
+//   std::unordered_map<Expr, Doc, ObjectPtrHash, ObjectPtrEqual> result_memo_;
+//   /*! \brief Map from Expr to Doc */
+//   std::unordered_map<Expr, Doc, ObjectPtrHash, ObjectPtrEqual> memo_;
+//   /*! \brief Map from Type to Doc */
+//   std::unordered_map<Type, Doc, ObjectPtrHash, ObjectPtrEqual> memo_type_;
+//   /*! \brief Map from Type to Doc */
+//   std::unordered_map<Pattern, Doc, ObjectPtrHash, ObjectPtrEqual> memo_pattern_;
+//   /*! \brief name allocation map */
+//   std::unordered_map<std::string, int> name_alloc_map_;
+//   /*! \brief meta data context */
+//   TextMetaDataContext* meta_;
+//   /*! \brief counter of temporary variable */
+//   size_t temp_var_counter_{0};
+//   /*! \brief whether the printer is currently in an ADT definition */
+//   bool in_adt_def_;
+//   /*! \brief arena for dependency graph */
+//   support::Arena arena_;
+//   /*! \brief dependency graph of the expr */
+//   DependencyGraph dg_;
+//   class AttrPrinter;
+//   friend class AttrPrinter;
+//   friend class tvm::relay::TextPrinter;
+// };
 
 using namespace ::tvm::tir;
 
@@ -411,7 +411,6 @@ class TextPrinter {
       : show_meta_data_(show_meta_data),
         show_warning_(show_warning),
         annotate_(annotate),
-        relay_text_printer_(show_meta_data, &meta_, annotate),
         tir_text_printer_(show_meta_data, &meta_) {}
 
   /*! \brief whether show meta data */
@@ -425,7 +424,7 @@ class TextPrinter {
   /*! \brief additional comment function */
   runtime::TypedPackedFunc<std::string(ObjectRef)> annotate_;
   /*! \brief Relay Text Printer */
-  relay::RelayTextPrinter relay_text_printer_;
+  // relay::RelayTextPrinter relay_text_printer_;
   /*! \brief TIR Text Printer */
   TIRTextPrinter tir_text_printer_;
 
@@ -439,9 +438,10 @@ class TextPrinter {
                (node->IsInstance<tir::PrimFuncNode>() || node->IsInstance<PrimExprNode>() ||
                 node->IsInstance<tir::StmtNode>())) {
       doc << tir_text_printer_.Print(node);
-    } else {
-      doc << relay_text_printer_.PrintFinal(node);
-    }
+    } 
+    // else {
+    //   doc << relay_text_printer_.PrintFinal(node);
+    // }
     if (!meta_.empty()) {
       doc << Doc::NewLine();
       if (show_meta_data_) {

@@ -335,13 +335,13 @@ tvm_file_glob(GLOB CODEGEN_SRCS
 
 list(APPEND COMPILER_SRCS ${CODEGEN_SRCS})
 
-tvm_file_glob(GLOB_RECURSE RELAY_OP_SRCS
-    src/relay/op/*.cc
-    )
+# tvm_file_glob(GLOB_RECURSE RELAY_OP_SRCS
+#     src/relay/op/*.cc
+#     )
 tvm_file_glob(GLOB_RECURSE RELAY_PASS_SRCS
     src/relay/analysis/*.cc
     # src/relay/collage/*.cc
-    src/relay/transforms/*.cc
+    # src/relay/transforms/*.cc
     # src/relay/quantize/*.cc
     )
 tvm_file_glob(GLOB RELAY_BACKEND_SRCS
@@ -357,7 +357,7 @@ tvm_file_glob(GLOB_RECURSE RELAY_IR_SRCS
 # tvm_file_glob(GLOB_RECURSE RELAY_QNN_SRCS
 #     src/relay/qnn/*.cc
 # )
-list(APPEND COMPILER_SRCS ${RELAY_OP_SRCS})
+# list(APPEND COMPILER_SRCS ${RELAY_OP_SRCS})
 list(APPEND COMPILER_SRCS ${RELAY_PASS_SRCS})
 list(APPEND COMPILER_SRCS ${RELAY_BACKEND_SRCS})
 list(APPEND COMPILER_SRCS ${RELAY_IR_SRCS})

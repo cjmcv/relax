@@ -54,7 +54,7 @@ Doc TextPrinter::PrintMod(const IRModule& mod) {
     if (counter++ != 0) {
       doc << Doc::NewLine();
     }
-    doc << relay_text_printer_.Print(mod->type_definitions[tyvar]);
+    // doc << relay_text_printer_.Print(mod->type_definitions[tyvar]);
     doc << Doc::NewLine();
   }
 
@@ -68,18 +68,19 @@ Doc TextPrinter::PrintMod(const IRModule& mod) {
   });
   for (const auto& var : vars) {
     const BaseFunc& base_func = mod->functions[var];
-    if (base_func.as<relay::FunctionNode>()) {
-      relay_text_printer_.dg_ =
-          relay::DependencyGraph::Create(&relay_text_printer_.arena_, base_func);
-    }
+    // if (base_func.as<relay::FunctionNode>()) {
+    //   relay_text_printer_.dg_ =
+    //       relay::DependencyGraph::Create(&relay_text_printer_.arena_, base_func);
+    // }
     if (counter++ != 0) {
       doc << Doc::NewLine();
     }
-    if (base_func.as<relay::FunctionNode>()) {
-      std::ostringstream os;
-      os << "def @" << var->name_hint;
-      doc << relay_text_printer_.PrintFunc(Doc::Text(os.str()), base_func);
-    } else if (base_func.as<tir::PrimFuncNode>()) {
+    // if (base_func.as<relay::FunctionNode>()) {
+    //   std::ostringstream os;
+    //   os << "def @" << var->name_hint;
+    //   doc << relay_text_printer_.PrintFunc(Doc::Text(os.str()), base_func);
+    // } else 
+    if (base_func.as<tir::PrimFuncNode>()) {
       doc << "@" << var->name_hint;
       doc << " = " << tir_text_printer_.PrintPrimFunc(Downcast<tir::PrimFunc>(base_func));
     }

@@ -32,8 +32,8 @@
 
 #include <stack>
 
-#include "../op/annotation/annotation.h"
-#include "../op/memory/on_device.h"
+// #include "../op/annotation/annotation.h"
+// #include "../op/memory/on_device.h"
 
 namespace tvm {
 namespace relay {
@@ -492,14 +492,14 @@ Expr Bind(const Expr& expr, const tvm::Map<Var, Expr>& args_map) {
     ret->virtual_device_ = func->virtual_device();
 
     std::unordered_set<Var, ObjectPtrHash, ObjectPtrEqual> set;
-    for (const auto& v : FreeVars(expr)) {
-      set.insert(v);
-    }
-    for (const auto& v : FreeVars(ret)) {
-      if (set.count(v) == 0) {
-        new_params.push_back(v);
-      }
-    }
+    // for (const auto& v : FreeVars(expr)) {
+    //   set.insert(v);
+    // }
+    // for (const auto& v : FreeVars(ret)) {
+    //   if (set.count(v) == 0) {
+    //     new_params.push_back(v);
+    //   }
+    // }
 
     ret =
         Function(new_params, new_body, func->ret_type, func->type_params, func->attrs, func->span);
@@ -508,7 +508,7 @@ Expr Bind(const Expr& expr, const tvm::Map<Var, Expr>& args_map) {
     VLOG(4) << "Expr:\n" << expr;
     VLOG(4) << "Ret:\n" << ret;
 
-    ICHECK_EQ(FreeVars(expr).size(), FreeVars(ret).size());
+    // ICHECK_EQ(FreeVars(expr).size(), FreeVars(ret).size());
     return std::move(ret);
   } else {
     return ExprBinder(args_map).VisitExpr(expr);
