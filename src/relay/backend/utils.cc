@@ -303,18 +303,18 @@ Map<Target, IRModule> TargetStrModuleMapToTargetModuleMap(
   return tvm_map;
 }
 
-void UpdateAutoSchedulerOpWeights(const IRModule& module) {
-  const auto* te_compiler_update_weights =
-      runtime::Registry::Get("auto_scheduler.relay_integration.te_compiler_update_weights");
+// void UpdateAutoSchedulerOpWeights(const IRModule& module) {
+//   const auto* te_compiler_update_weights =
+//       runtime::Registry::Get("auto_scheduler.relay_integration.te_compiler_update_weights");
 
-  ICHECK(te_compiler_update_weights != nullptr)
-      << "auto_scheduler.relay_integration.te_compiler_update_weights";
+//   ICHECK(te_compiler_update_weights != nullptr)
+//       << "auto_scheduler.relay_integration.te_compiler_update_weights";
 
-  Map<String, Integer> weight_map =
-      module->GetAttr<Map<String, Integer>>("op_weights", Map<String, Integer>()).value();
+//   Map<String, Integer> weight_map =
+//       module->GetAttr<Map<String, Integer>>("op_weights", Map<String, Integer>()).value();
 
-  (*te_compiler_update_weights)(weight_map);
-}
+//   (*te_compiler_update_weights)(weight_map);
+// }
 
 std::vector<int64_t> ShapeToJSON(tvm::Array<IndexExpr> shape) {
   std::vector<int64_t> ret;

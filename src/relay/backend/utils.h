@@ -739,14 +739,14 @@ TargetModuleMapToTargetStrModuleMap(Map<Target, IRModule> input_map);
 Map<Target, IRModule> TargetStrModuleMapToTargetModuleMap(
     std::unordered_map<Target, IRModule, TargetStrHash, TargetStrEqual> input_map);
 
-/*!
- * \brief Call "weight update callback" to communicate op weights seen during Relay module
- * lowering back to the auto scheduler.
- * Op weights refer to the number of times each distinct op/workload appears in a given module.
- * It is called "use_count" in TECompiler.
- * \param IRModule after lowering by LowerTEPass.
- */
-void UpdateAutoSchedulerOpWeights(const IRModule& module);
+// /*!
+//  * \brief Call "weight update callback" to communicate op weights seen during Relay module
+//  * lowering back to the auto scheduler.
+//  * Op weights refer to the number of times each distinct op/workload appears in a given module.
+//  * It is called "use_count" in TECompiler.
+//  * \param IRModule after lowering by LowerTEPass.
+//  */
+// void UpdateAutoSchedulerOpWeights(const IRModule& module);
 
 /*!
  * \brief Extract shape from expr to vector<int64_t>
