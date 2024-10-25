@@ -483,3 +483,15 @@ SET(CMAKE_VS_PLATFORM_NAME_DEFAULT "x64")
 
 # Set Windows Visual Studio default host (equivalent to -Thost=x64)
 SET(CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE "x64")
+
+
+###
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
+set(USE_LLVM "llvm-config --ignore-libllvm --link-static")
+set(HIDE_PRIVATE_SYMBOLS ON)
+
+## cuda
+set(USE_CUDA   ON)
+set(USE_FLASHINFER OFF)
+set(FLASHINFER_CUDA_ARCHITECTURES 86)
+set(CMAKE_CUDA_ARCHITECTURES 86)
